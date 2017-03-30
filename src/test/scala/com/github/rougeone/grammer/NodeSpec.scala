@@ -1,6 +1,6 @@
 package com.github.rougeone.grammer
 
-import com.github.rogueone.ast.Nodes.{DecimalLiteral, IntegerLiteral, StringLiteral}
+import com.github.rogueone.ast.Nodes.{DateLiteral, DecimalLiteral, IntegerLiteral, StringLiteral}
 import fastparse.core.Parsed
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -19,7 +19,7 @@ class NodeSpec extends FlatSpec with MustMatchers {
     stringLiteral.parse("'hello world'").get.value must be (StringLiteral("hello world"))
     stringLiteral.parse("'foobar").asInstanceOf[Parsed.Failure[_,_]].index must be (7)
     stringLiteral.parse("foobar'").asInstanceOf[Parsed.Failure[_,_]].index must be (0)
-    dateLiteral.parse(" DATE '2015-12-32'") must be ("2015-12-32")
+    dateLiteral.parse("DATE '2015-12-32'").get.value must be (DateLiteral("2015-12-32"))
   }
 
 }

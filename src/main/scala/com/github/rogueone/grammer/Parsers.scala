@@ -33,11 +33,11 @@ object Parsers {
     object Literal {
       val numberLiteral = P { (Start ~ (plus | minus).? ~ number.rep ~ End).! }.map(IntegerLiteral)
       val decimalLiteral = P { Start ~ ((plus | minus).? ~ number.rep ~ decimal ~ number.rep).! ~ End }.map(DecimalLiteral)
-      val stringLiteral = P { Start ~ "'" ~ CharPred(_ != '\'').rep.! ~ "'" ~ End }.map(IntegerLiteral)
+      val stringLiteral = P { Start ~ "'" ~ CharPred(_ != '\'').rep.! ~ "'" ~ End }.map(StringLiteral)
       val dateLiteral = P {
         Start ~ IgnoreCase("DATE") ~ ws ~ "'" ~ (number.rep(exactly = 4) ~ "-" ~ number.rep(exactly = 2) ~
-          "-" ~ number.rep(exactly = 2)).! ~ "'"
-      }
+          "-" ~ number.rep(exactly = 2)).! ~ "'" ~ End
+      }.map(x => DateLiteral(x))
     }
     val expr = (identifier | (Literal.decimalLiteral | Literal.numberLiteral | Literal.stringLiteral | Literal.dateLiteral))
   }
