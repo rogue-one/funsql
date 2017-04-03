@@ -1,6 +1,5 @@
 package com.github.rogueone.ast
 
-import java.text.SimpleDateFormat
 import java.util.Date
 
 /**
@@ -10,40 +9,110 @@ object Nodes {
 
   sealed trait Node
 
-  /**
-    * Expression node
-    */
-  trait Expr extends Node {
-    def value: String
+  sealed trait Exp {
+    def resolve: Exp
   }
 
-  /**
-    * Identifier Node
-    * @param value value of the Identifier
-    */
-  case class Identifier(override val value: String) extends Expr
-
-  trait Literal[T] extends Expr {
-    def literal: T
+  case class IntegerLiteral(value: Long) extends Exp {
+    def resolve = this
   }
 
-  case class IntegerLiteral(override val value: String) extends Literal[Long] {
-    def literal = value.toLong
+  case class DecimalLiteral(value: Double) extends Exp {
+    def resolve = this
   }
 
-  case class DecimalLiteral(override val value: String) extends Literal[Double] {
-    def literal = value.toDouble
+  case class StringLiteral(value: String) extends Exp {
+    def resolve = this
   }
 
-  case class StringLiteral(override val value: String) extends Literal[String] {
-    def literal = value
+  case class DateLiteral(value: Date) extends Exp {
+    def resolve = this
   }
 
-  case class DateLiteral(override val value: String) extends Literal[Date] {
-    def literal = {
-      val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-      sdf.parse(value)
+  case class Identifier(value: String) extends Exp {
+    def resolve = this
+  }
+
+  trait Operator extends Exp {
+    def lhs: Exp
+    def rhs: Exp
+  }
+
+  case class Add(override val lhs: Exp, override val rhs: Exp) extends Operator {
+
+    def resolve: Exp = lhs.resolve -> rhs.resolve match {
+      case (IntegerLiteral(x), IntegerLiteral(y)) => IntegerLiteral(x + y)
+      case (IntegerLiteral(x), DecimalLiteral(y)) => DecimalLiteral(x + y)
+      case (DecimalLiteral(x), IntegerLiteral(y)) => DecimalLiteral(x + y)
+      case (DecimalLiteral(x), DecimalLiteral(y)) => DecimalLiteral(x + y)
+      case (Identifier(_), Identifier(_)) => this
+      case (x: Operator, Identifier(_)) => this
+    }
+
+  }
+
+  case class Sub(override val lhs: Exp, override val rhs: Exp) extends Operator {
+
+    def resolve: Exp = lhs.resolve -> rhs.resolve match {
+      case (IntegerLiteral(x), IntegerLiteral(y)) => IntegerLiteral(x - y)
+      case (IntegerLiteral(x), DecimalLiteral(y)) => DecimalLiteral(x - y)
+      case (DecimalLiteral(x), IntegerLiteral(y)) => DecimalLiteral(x - y)
+      case (DecimalLiteral(x), DecimalLiteral(y)) => DecimalLiteral(x - y)
+      case (Identifier(_), Identifier(_)) => this
+      case (x: Operator, Identifier(_)) => this
+    }
+
+  }
+
+  case class Mul(override val lhs: Exp, override val rhs: Exp) extends Operator {
+
+    def resolve: Exp = lhs.resolve -> rhs.resolve match {
+      case (IntegerLiteral(x), IntegerLiteral(y)) => IntegerLiteral(x - y)
+      case (IntegerLiteral(x), DecimalLiteral(y)) => DecimalLiteral(x - y)
+      case (DecimalLiteral(x), IntegerLiteral(y)) => DecimalLiteral(x - y)
+      case (DecimalLiteral(x), DecimalLiteral(y)) => DecimalLiteral(x - y)
+      case (Identifier(_), Identifier(_)) => this
+      case (x: Operator, Identifier(_)) => this
+    }
+
+  }
+
+  case class Div(override val lhs: Exp, override val rhs: Exp) extends Operator {
+    def resolve: Exp = lhs.resolve -> rhs.resolve match {
+      case (IntegerLiteral(x), IntegerLiteral(y)) => IntegerLiteral(x - y)
+      case (IntegerLiteral(x), DecimalLiteral(y)) => DecimalLiteral(x - y)
+      case (DecimalLiteral(x), IntegerLiteral(y)) => DecimalLiteral(x - y)
+      case (DecimalLiteral(x), DecimalLiteral(y)) => DecimalLiteral(x - y)
+      case (Identifier(_), Identifier(_)) => this
+      case (x: Operator, Identifier(_)) => this
     }
   }
+
+
+  trait Predicate
+
+  trait PredicateOperator extends Predicate {
+    def lhs: Exp
+    def rhs: Exp
+  }
+
+  case class Eq(lhs: Exp, rhs: Exp) extends PredicateOperator
+
+  case class Lt(lhs: Exp, rhs: Exp) extends PredicateOperator
+
+  case class Gt(lhs: Exp, rhs: Exp) extends PredicateOperator
+
+  case class GtEq(lhs: Exp, rhs: Exp) extends PredicateOperator
+
+  case class LtEq(lhs: Exp, rhs: Exp) extends PredicateOperator
+
+  sealed trait Condition extends Predicate {
+    def left: Predicate
+    def right: Predicate
+  }
+
+  case class OrCondition(override val left: Predicate, override val right: Predicate) extends Condition
+
+  case class AndCondition(override val left: Predicate, override val right: Predicate) extends Condition
 
 }
