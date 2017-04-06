@@ -93,9 +93,11 @@ object Parsers {
     import White._
     import fastparse.noApi._
     val select = P { Start ~ IgnoreCase("SELECT") ~ expression.rep(sep=",") ~ IgnoreCase("FROM") ~
-      Lexical.identifier.! ~ IgnoreCase("WHERE") ~ mathExp.! ~ End
+      Lexical.identifier.! ~ (IgnoreCase("WHERE") ~ mathExp).?  ~
+      (IgnoreCase("GROUP") ~ "BY" ~ Lexical.identifier.rep(sep=",")).? ~
+      (IgnoreCase("LIMIT") ~ Lexical.Primitives.number.!).? ~ End
     } map {
-      case (x, y, z) => ast.Queries.Select(x, ast.Nodes.Identifier(y), mathExp.parse(z).get.value)
+      case (p, q, r, s, t) => ast.Queries.Select(p, ast.Nodes.Identifier(q), r, s.getOrElse(Nil), t.map(_.toLong))
     }
   }
 
