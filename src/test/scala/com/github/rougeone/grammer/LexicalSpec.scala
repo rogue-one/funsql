@@ -1,19 +1,17 @@
 package com.github.rougeone.grammer
 
 import java.text.SimpleDateFormat
-
 import com.github.rogueone.ast
-import com.github.rogueone.grammer.Parsers.Nodes.MathExpressionParser
 import fastparse.core.Parsed
 import org.scalatest.{FlatSpec, MustMatchers}
 
 /**
   * Created by chlr on 3/26/17.
   */
-class NodeSpec extends FlatSpec with MustMatchers {
+class LexicalSpec extends FlatSpec with MustMatchers {
 
   "LiteralParser" must "parse all literals" in {
-    import com.github.rogueone.grammer.Parsers.Nodes.LiteralParser._
+    import com.github.rogueone.grammer.Lexical.LiteralParser._
     numberLiteral.parse("+100").get.value must be (ast.Nodes.IntegerLiteral(100L))
     numberLiteral.parse("-000100").get.value must be (ast.Nodes.IntegerLiteral(-100L))
     decimalLiteral.parse("-10.23").get.value must be (ast.Nodes.DecimalLiteral(-10.23D))
@@ -24,17 +22,9 @@ class NodeSpec extends FlatSpec with MustMatchers {
     dateLiteral.parse("date '2015-12-32'").get.value must be (ast.Nodes.DateLiteral(
       new SimpleDateFormat("YYYY-MM-DD").parse("2015-12-32"))
     )
-  }
-
-  "MathParser" must "parse math expression" in {
-    import ast.Nodes._
-
-    MathExpressionParser.mathExp.parse("1 + 20").get.value must be (Add(IntegerLiteral(20), IntegerLiteral(1)))
-
-    MathExpressionParser.mathExp.parse("(112 * col1) + 2").get.value mustBe {
-      Add(IntegerLiteral(2),Mul(Identifier("col1"),IntegerLiteral(112)))
-    }
-
+    dateLiteral.parse("date'2015-12-32'").get.value must be (ast.Nodes.DateLiteral(
+      new SimpleDateFormat("YYYY-MM-DD").parse("2015-12-32"))
+    )
   }
 
 }

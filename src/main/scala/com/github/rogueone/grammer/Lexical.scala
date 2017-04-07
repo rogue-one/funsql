@@ -17,7 +17,7 @@ object Lexical {
     val plus = P { "+" }
     val minus = P { "-" }
     val decimal = P { "." }
-    val ws = P { CharIn(Seq(' ', '\n', '\t')) }
+    val whitespace = P { CharIn(" \n\t") }
   }
 
   /**
@@ -27,8 +27,10 @@ object Lexical {
   def identifier = {
       import Primitives._
       import fastparse.all._
-      P { ((char | underscore) ~ (char | number | underscore).rep(0).?).!.opaque("<identifier>") } map {
-        x => ast.Nodes.Identifier(x)
+      P { ((char | underscore) ~ (char | number | underscore).rep(0).?).!.opaque("<identifier>") } filter {
+        !keywords.contains(_)
+      } map {
+        ast.Nodes.Identifier
       }
     }
 
@@ -43,7 +45,7 @@ object Lexical {
       .map(x => ast.Nodes.DecimalLiteral(x.toDouble))
     def stringLiteral = P {"'" ~ CharPred(_ != '\'').rep.! ~ "'"}.map(ast.Nodes.StringLiteral)
     def dateLiteral = P {
-      IgnoreCase("DATE") ~ ws ~ "'" ~ (number.rep(exactly = 4) ~ "-" ~ number.rep(exactly = 2) ~
+      IgnoreCase("DATE") ~ whitespace.rep ~ "'" ~ (number.rep(exactly = 4) ~ "-" ~ number.rep(exactly = 2) ~
         "-" ~ number.rep(exactly = 2)).! ~ "'"
     }.map(x => ast.Nodes.DateLiteral(new SimpleDateFormat("YYYY-MM-DD").parse(x)))
   }
@@ -58,5 +60,7 @@ object Lexical {
     val lteq = P { "<=" }
     val condOp = (eq | neq | gt | lt | gteq | lteq | IgnoreCase("or") | IgnoreCase("and"))
   }
+
+  val keywords = Seq("select", "from", "where", "not", "or", "and", "limit", "group", "by")
 
 }

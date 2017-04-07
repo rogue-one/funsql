@@ -11,47 +11,44 @@ object Nodes {
 
   sealed trait Exp
 
-  case class IntegerLiteral(value: Long) extends Exp
+  sealed trait Literal extends Exp
 
-  case class DecimalLiteral(value: Double) extends Exp
+  case class IntegerLiteral(value: Long) extends Literal
 
-  case class StringLiteral(value: String) extends Exp
+  case class DecimalLiteral(value: Double) extends Literal
 
-  case class DateLiteral(value: Date) extends Exp
+  case class StringLiteral(value: String) extends Literal
+
+  case class DateLiteral(value: Date) extends Literal
 
   case class Identifier(value: String) extends Exp
 
   case class Function(name: Identifier, exp: Seq[Exp]) extends Exp
 
-  trait Operator extends Exp {
-    def lhs: Exp
-    def rhs: Exp
-  }
+  case class Add(lhs: Exp, rhs: Exp) extends Exp
 
-  case class Add(override val lhs: Exp, override val rhs: Exp) extends Operator
+  case class Sub(lhs: Exp, rhs: Exp) extends Exp
 
-  case class Sub(override val lhs: Exp, override val rhs: Exp) extends Operator
+  case class Mul(lhs: Exp, rhs: Exp) extends Exp
 
-  case class Mul(override val lhs: Exp, override val rhs: Exp) extends Operator
+  case class Div(lhs: Exp, rhs: Exp) extends Exp
 
-  case class Div(override val lhs: Exp, override val rhs: Exp) extends Operator
+  case class Not(exp: Exp) extends Exp
 
+  case class Eq(lhs: Exp, rhs: Exp) extends Exp
 
-  case class Eq(lhs: Exp, rhs: Exp) extends Operator
+  case class NtEq(lhs: Exp, rhs: Exp) extends Exp
 
-  case class NtEq(lhs: Exp, rhs: Exp) extends Operator
+  case class Lt(lhs: Exp, rhs: Exp) extends Exp
 
-  case class Lt(lhs: Exp, rhs: Exp) extends Operator
+  case class Gt(lhs: Exp, rhs: Exp) extends Exp
 
-  case class Gt(lhs: Exp, rhs: Exp) extends Operator
+  case class GtEq(lhs: Exp, rhs: Exp) extends Exp
 
-  case class GtEq(lhs: Exp, rhs: Exp) extends Operator
+  case class LtEq(lhs: Exp, rhs: Exp) extends Exp
 
-  case class LtEq(lhs: Exp, rhs: Exp) extends Operator
+  case class OrCond(lhs: Exp, rhs: Exp) extends Exp
 
-
-  case class OrCond(lhs: Exp, rhs: Exp) extends Operator
-
-  case class AndCond(lhs: Exp, rhs: Exp) extends Operator
+  case class AndCond(lhs: Exp, rhs: Exp) extends Exp
 
 }
