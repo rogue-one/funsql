@@ -30,9 +30,14 @@ object PredicateParser {
       case (e: Nodes.Exp, (headOp, headExp) :: tail) =>
         tail.foldLeft(opToPredicate(headOp, e, headExp))({ case (l, (op, r)) => opToPredicate(op, l, r)})
       case (x, Nil) => x
-    }).log()
+    })
 
-  protected val comparison: P[Exp] = P( Keyword.Not.parser ~ binaryComparison | binaryComparison ).log()
+  protected val comparison: P[Exp] = P( Keyword.Not.parser.!.? ~ binaryComparison)
+    .map({
+      case (Some(_), exp: Predicate) => Nodes.NotCond(exp)
+      case (None, exp) => exp
+      case _ => ???
+    })
 
 
   val compoundComparison: P[Exp] = P(comparison ~ (compoundConditionalOp.! ~/ comparison).rep)
@@ -44,6 +49,12 @@ object PredicateParser {
         case (head: Exp, Nil) => head
         case _ => ???
       })
+
+  val predicate = P (Keyword.Not.parser.!.? ~ compoundComparison).map({
+    case (Some(_), exp: Predicate) => Nodes.NotCond(exp)
+    case (None, exp) => exp
+    case _ => ???
+  })
 
   protected def opToPredicate(operator: String, lhs: Exp, rhs: Exp): Predicate = {
     operator match {

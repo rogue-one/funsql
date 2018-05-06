@@ -25,14 +25,14 @@ object MathParser {
     case (e, s) => s.foldLeft(e)({
       case (l, (op, r)) => if(op == "+") ast.Nodes.Add(l, r) else ast.Nodes.Sub(l, r)
     })
-  }).log()
+  })
 
   protected val mulDiv: P[Exp] = P( primary ~ (CharIn("*/").! ~/ primary).rep ).map({
     case (e: Exp, s: Seq[(String, Exp)]) => s.foldLeft(e) {
       case (l, (op, r)) => if(op == "*") ast.Nodes.Mul(l, r) else ast.Nodes.Div(l, r)
     }
-  }).log()
+  })
 
-  val mathExp: P[Exp] = compoundComparison
+  val mathExp: P[Exp] = PredicateParser.predicate
 
 }
