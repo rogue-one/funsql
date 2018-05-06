@@ -1,6 +1,9 @@
 package com.github.rogueone.ast
 
+import java.text.SimpleDateFormat
 import java.util.Date
+
+import scala.util.{Success, Try}
 
 /**
   * Created by chlr on 3/26/17.
@@ -13,13 +16,34 @@ object Nodes {
 
   sealed trait Literal extends Exp
 
-  case class IntegerLiteral(value: Long) extends Literal
+  sealed abstract class BaseLiteral[T](value: String) extends Literal {
+    val data: Try[T]
+    def parsed: Boolean = data.isSuccess
+  }
 
-  case class DecimalLiteral(value: Double) extends Literal
+  case class IntegerLiteral(value: String) extends BaseLiteral[Long](value) {
+    val data: Try[Long] = Try(value.toLong)
+  }
 
-  case class StringLiteral(value: String) extends Literal
+  case class DecimalLiteral(value: String) extends BaseLiteral[Double](value) {
+    val data: Try[Double] = Try(value.toDouble)
+  }
 
-  case class DateLiteral(value: Date) extends Literal
+  case class StringLiteral(value: String) extends BaseLiteral[String](value) {
+    val data: Try[String] = Success(value)
+  }
+
+  case class DateLiteral(value: String) extends BaseLiteral[Date](value) {
+    val sdf = new SimpleDateFormat("yyyy-MM-dd")
+    sdf.setLenient(false)
+    val data: Try[Date] = Try(sdf.parse(value))
+  }
+
+  case class TimestampLiteral(value: String) extends BaseLiteral[Date](value) {
+    val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    sdf.setLenient(false)
+    val data: Try[Date] = Try(sdf.parse(value))
+  }
 
   case class Identifier(value: String) extends Exp
 
@@ -33,22 +57,27 @@ object Nodes {
 
   case class Div(lhs: Exp, rhs: Exp) extends Exp
 
-  case class Not(exp: Exp) extends Exp
+  trait Predicate extends Exp
 
-  case class Eq(lhs: Exp, rhs: Exp) extends Exp
+  case class Eq(lhs: Exp, rhs: Exp) extends Predicate
 
-  case class NtEq(lhs: Exp, rhs: Exp) extends Exp
+  case class NtEq(lhs: Exp, rhs: Exp) extends Predicate
 
-  case class Lt(lhs: Exp, rhs: Exp) extends Exp
+  case class Lt(lhs: Exp, rhs: Exp) extends Predicate
 
-  case class Gt(lhs: Exp, rhs: Exp) extends Exp
+  case class Gt(lhs: Exp, rhs: Exp) extends Predicate
 
-  case class GtEq(lhs: Exp, rhs: Exp) extends Exp
+  case class GtEq(lhs: Exp, rhs: Exp) extends Predicate
 
-  case class LtEq(lhs: Exp, rhs: Exp) extends Exp
+  case class LtEq(lhs: Exp, rhs: Exp) extends Predicate
 
-  case class OrCond(lhs: Exp, rhs: Exp) extends Exp
+  case class OrCond(lhs: Predicate, rhs: Predicate) extends Predicate
 
-  case class AndCond(lhs: Exp, rhs: Exp) extends Exp
+  case class AndCond(lhs: Predicate, rhs: Predicate) extends Predicate
+
+  case class NotCond(exp: Predicate) extends Predicate
+
+  case class InClause(lhs: Exp, rhs: Seq[Exp]) extends Predicate
+
 
 }

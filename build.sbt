@@ -11,3 +11,6 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 //libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.11"
 
 libraryDependencies += "com.lihaoyi" %% "fastparse" % "0.4.2"
+
+
+unmanagedJars in Compile += file("lib/glide.jar")
