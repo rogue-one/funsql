@@ -1,12 +1,10 @@
 package com.github.rogueone.parser
 
 import com.github.rogueone.ast
-import com.github.rogueone.ast.Nodes.{Exp, Predicate}
+import com.github.rogueone.ast.Nodes.Exp
 import fastparse.noApi._
 import com.github.rogueone.parser.Parser.White._
 import LiteralParser._
-import com.github.rogueone.ast.Nodes
-import fastparse.core
 import PredicateParser._
 
 object MathParser {
@@ -22,8 +20,6 @@ object MathParser {
 //      .map({case (x, y: Seq[ast.Nodes.Exp] @unchecked) => ast.Nodes.InClause(x, y)})
 //  }
 
-  val mathExp: P[Exp] = P(compoundComparison | addSub)
-
 
   val addSub: P[Exp] = P( mulDiv ~ (CharIn("+-").! ~/ mulDiv).rep).map({
     case (e, s) => s.foldLeft(e)({
@@ -35,6 +31,8 @@ object MathParser {
     case (e: Exp, s: Seq[(String, Exp)]) => s.foldLeft(e) {
       case (l, (op, r)) => if(op == "*") ast.Nodes.Mul(l, r) else ast.Nodes.Div(l, r)
     }
-  })
+  }).log()
+
+  val mathExp: P[Exp] = compoundComparison
 
 }

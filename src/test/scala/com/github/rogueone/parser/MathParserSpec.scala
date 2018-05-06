@@ -11,8 +11,14 @@ class MathParserSpec extends TestSpec {
       Nodes.IntegerLiteral("5")))
   }
 
-//  it must "parse predicate expression" in {
-//    info(MathParser.mathExp.parse("(1 * 2) > 50 AND 5 > 10").toString)
-//  }
+  it must "parse predicate expression" in {
+    MathParser.mathExp.parse("(1 * 2) > 50").get.value must be (Nodes.Gt(
+          Nodes.Mul(Nodes.IntegerLiteral("1"),Nodes.IntegerLiteral("2")),
+          Nodes.IntegerLiteral("50")))
+
+    MathParser.mathExp.parse("(1 * 2) > 50 AND 5 > 10").get.value must be (Nodes.AndCond(Nodes.Gt
+    (Nodes.Mul(Nodes.IntegerLiteral("1"),Nodes.IntegerLiteral("2")),Nodes.IntegerLiteral("50")), Nodes.Gt(
+      Nodes.IntegerLiteral("5"),Nodes.IntegerLiteral("10"))))
+  }
 
 }

@@ -1,11 +1,10 @@
 package com.github.rogueone.parser
 
-import fastparse.all
 import fastparse.all._
 import fastparse.all.{IgnoreCase, P}
 
 
-abstract class Keyword(val word: String) {
+sealed abstract class Keyword(val word: String) {
 
   /**
     * creates a parser for a given keyword.
