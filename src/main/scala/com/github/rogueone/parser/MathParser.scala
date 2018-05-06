@@ -4,21 +4,12 @@ import com.github.rogueone.ast
 import com.github.rogueone.ast.Nodes.Exp
 import fastparse.noApi._
 import com.github.rogueone.parser.Parser.White._
-import LiteralParser._
-import PredicateParser._
 
 object MathParser {
 
-  private val primary: P[Exp] = P { numberLiteral | decimalLiteral | parentheses | Parser.identifier }
+  private val primary: P[Exp] = P { LiteralParser.literal  | parentheses | Parser.identifier }
 
   val parentheses: P[Exp] = P( "(" ~/ mathExp ~ ")" )
-
-//  protected val setComparison: core.Parser[Nodes.InClause, Char, String] = {
-//    val set =  P("(" ~ mathExp.rep(min=1, sep=",")  ~ ")")
-//    (Parser.expression ~ Keyword.keyword("in") ~ set)
-//      .filter({ case (_, _: Seq[ast.Nodes.Exp] @unchecked) => true case _ => false})
-//      .map({case (x, y: Seq[ast.Nodes.Exp] @unchecked) => ast.Nodes.InClause(x, y)})
-//  }
 
 
   val addSub: P[Exp] = P( mulDiv ~ (CharIn("+-").! ~/ mulDiv).rep).map({

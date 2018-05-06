@@ -6,6 +6,7 @@ import com.github.rogueone.ast.Nodes.{Exp, Predicate}
 import Parser.White._
 import fastparse.noApi._
 import com.github.rogueone.utils.Utils._
+import fastparse.noApi
 
 object PredicateParser {
 
@@ -25,11 +26,23 @@ object PredicateParser {
 
   val compoundConditionalOp: P[Unit] = IgnoreCase("or") | IgnoreCase("and")
 
-  protected val binaryComparison: P[Exp] = P(MathParser.addSub ~ (conditionalOp.! ~/ MathParser.addSub).rep)
-    .map(x => (x._1, x._2.toList) match {
-      case (e: Nodes.Exp, (headOp, headExp) :: tail) =>
-        tail.foldLeft(opToPredicate(headOp, e, headExp))({ case (l, (op, r)) => opToPredicate(op, l, r)})
+  val setComparison: P[(String, Seq[Exp])] = P(Keyword.In.parser.! ~ "(" ~/ MathParser.addSub.rep(min=1, sep=",") ~ ")")
+
+  protected val binaryComparison: P[Exp] = P(MathParser.addSub ~
+    ((conditionalOp.! ~/ MathParser.addSub) | setComparison).rep)
+    .map(y => y._1 -> y._2.toList match {
+      case (e: Nodes.Exp, (headOp, headExp: Nodes.Exp) :: tail) =>
+        tail.foldLeft(opToPredicate(headOp, e, headExp))({
+          case (l, (op, r: Nodes.Exp)) => opToPredicate(op, l, r)
+          case (l, (ci"in", r: Seq[Nodes.Exp @unchecked])) => Nodes.InClause(l, r)
+        })
+      case (e: Nodes.Exp, (ci"in", nodes: Seq[Nodes.Exp @unchecked]) :: tail) =>
+        tail.foldLeft(Nodes.InClause(e, nodes): Predicate)({
+          case (l, (op, r: Nodes.Exp)) => opToPredicate(op, l, r)
+          case (l, (ci"in", r: Seq[Nodes.Exp @unchecked])) => Nodes.InClause(l, r)
+        })
       case (x, Nil) => x
+      case _ => ???
     })
 
   protected val comparison: P[Exp] = P( Keyword.Not.parser.!.? ~ binaryComparison)
