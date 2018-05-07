@@ -6,6 +6,8 @@ import com.github.rogueone.ast.Nodes.{Exp, Predicate}
 import Parser.White._
 import fastparse.noApi._
 import com.github.rogueone.utils.Utils._
+import fastparse.core
+import fastparse.core.Parsed.Success
 
 object PredicateParser {
 
@@ -64,11 +66,17 @@ object PredicateParser {
         case _ => ???
       })
 
-  val predicate = P (Keyword.Not.parser.!.? ~ compoundComparison).map({
-    case (Some(_), exp: Predicate) => Nodes.NotCond(exp)
-    case (None, exp) => exp
-    case _ => ???
-  })
+  val predicate: P[Exp] = P(Keyword.Not.parser.!.? ~ compoundComparison)
+    .map({
+        case (Some(_), exp: Predicate) => Nodes.NotCond(exp)
+        case (None, exp) => exp
+        case _ => ???
+      })
+
+  val predicateOnly: P[Nodes.Predicate] = predicate
+      .filter({ case x: Predicate => true case _ => false})
+      .map({ case x: Predicate => x case _ => ???})
+
 
   protected def opToPredicate(operator: String, lhs: Exp, rhs: Exp): Predicate = {
     operator match {
