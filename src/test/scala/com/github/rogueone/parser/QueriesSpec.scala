@@ -1,7 +1,8 @@
 package com.github.rogueone.parser
 
 import com.github.rogueone.TestSpec
-import com.github.rogueone.ast.{Nodes, Sql}
+import com.github.rogueone.ast.Nodes
+import com.github.rogueone.ast.Nodes.Sql
 import scala.collection.mutable.ArrayBuffer
 
 class QueriesSpec extends TestSpec {
@@ -37,6 +38,27 @@ class QueriesSpec extends TestSpec {
         Some(Nodes.IntegerLiteral("10"))
       )
     )
+  }
+
+  it must "parse query with sub query" in {
+    val sql = "SELECT col1,max(col3) FROM table_name WHERE col4 IN (select col1, col2 FROM table) GROUP BY col1"
+    Queries.select.parse(sql).get.value must be {
+      Sql.Select(
+        Seq(
+          Nodes.Identifier("col1"),
+          Nodes.Function(Nodes.Identifier("max"), Seq(Nodes.Identifier("col3")))
+        ),
+        Nodes.Identifier("table_name"),
+        Some(
+          Nodes.SubQuery(
+            Nodes.Identifier("col4"),
+            Sql.Select(Seq(Nodes.Identifier("col1"), Nodes.Identifier("col2")), Nodes.Identifier("table"), None, Nil, None)
+          )
+        ),
+        Seq(Nodes.Identifier("col1")),
+        None
+      )
+    }
   }
 
 }

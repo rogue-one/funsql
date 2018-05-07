@@ -79,5 +79,13 @@ object Nodes {
 
   case class InClause(lhs: Exp, rhs: Seq[Exp]) extends Predicate
 
+  case class SubQuery(lhs: Exp, rhs: Sql.Select) extends Predicate
+
+  object Sql {
+
+    case class Select(columns: Seq[Nodes.Exp], table: Nodes.Identifier, where: Option[Predicate], groupBy: Seq[Nodes.Exp],
+                      limit: Option[Nodes.IntegerLiteral]) extends Nodes.Exp
+  }
+
 
 }

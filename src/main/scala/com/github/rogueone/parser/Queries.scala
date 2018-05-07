@@ -1,6 +1,6 @@
 package com.github.rogueone.parser
 
-import com.github.rogueone.ast.Sql
+import com.github.rogueone.ast.Nodes.Sql
 import fastparse.noApi._
 import com.github.rogueone.parser.Parser.White._
 
