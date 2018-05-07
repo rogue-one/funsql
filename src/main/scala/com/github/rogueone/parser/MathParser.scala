@@ -9,11 +9,11 @@ object MathParser {
 
   val mathExp: P[Exp] = PredicateParser.predicate
 
-  val parentheses: P[Exp] = P( "(" ~/ mathExp ~ ")" )
+  protected val parentheses: P[Exp] = P( "(" ~/ mathExp ~ ")" )
 
-  val primary: P[Exp] = P { LiteralParser.literal  | parentheses | Parser.function | Parser.identifier }
+  val primary: P[Exp] = P(LiteralParser.literal | Parser.function | Primitives.identifier  | parentheses )
 
-  protected val mulDiv: P[Exp] = P( Parser.expression ~ (CharIn("*/").! ~/ Parser.expression).rep ).map({
+  protected val mulDiv: P[Exp] = P( primary ~ (CharIn("*/").! ~/ primary).rep ).map({
     case (e: Exp, s: Seq[(String, Exp)]) => s.foldLeft(e) {
       case (l, (op, r)) => if(op == "*") ast.Nodes.Mul(l, r) else ast.Nodes.Div(l, r)
     }

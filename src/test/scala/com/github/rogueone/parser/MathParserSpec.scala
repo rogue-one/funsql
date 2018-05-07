@@ -74,7 +74,6 @@ class MathParserSpec extends TestSpec {
   }
 
   it must "parse In clause correctly" in {
-
     MathParser.mathExp.parse("5 < 10 OR NOT col1 in (1,'lando',col3)").get.value must be(
       Nodes.OrCond(
         Nodes.Lt(Nodes.IntegerLiteral("5"), Nodes.IntegerLiteral("10")),
@@ -97,7 +96,7 @@ class MathParserSpec extends TestSpec {
 
 
   it must "handle functions in expressions" in {
-    MathParser.mathExp.parse("foo(10) < 10 OR NOT col1 in (1,'lando',col3)").get.value must be(
+    Parser.expression.parse("foo(10) < 10 OR NOT col1 in (1,'lando',col3)").get.value must be(
       Nodes.OrCond(
         Nodes.Lt(
           Nodes.Function(Nodes.Identifier("foo"), ArrayBuffer(Nodes.IntegerLiteral("10"))),

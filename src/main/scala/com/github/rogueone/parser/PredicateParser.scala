@@ -25,11 +25,12 @@ object PredicateParser {
 
   val compoundConditionalOp: P[Unit] = Keyword.Or.parser | Keyword.And.parser
 
-  val setComparison: P[(String, Seq[Exp])] = P(Keyword.In.parser.! ~ "(" ~/ MathParser.addSub.rep(min=1, sep=",") ~ ")")
+  val setComparison: P[(String, Seq[Exp])] = P(Keyword.In.parser.! ~ "(" ~/ Parser.expression.rep(min=1, sep=",") ~ ")")
 
-  protected val binaryComparison: P[Exp] = P(MathParser.addSub ~
-    ((conditionalOp.! ~/ MathParser.addSub) | setComparison).rep)
-    .map(y => y._1 -> y._2.toList match {
+  protected val binaryComparison: P[Exp] =
+    P(MathParser.addSub ~ ((conditionalOp.! ~/ MathParser.addSub) | setComparison).rep)
+     .map(x => x._1 -> x._2.toList)
+     .map({
       case (e: Nodes.Exp, (headOp, headExp: Nodes.Exp) :: tail) =>
         tail.foldLeft(opToPredicate(headOp, e, headExp))({
           case (l, (op, r: Nodes.Exp)) => opToPredicate(op, l, r)
@@ -53,7 +54,8 @@ object PredicateParser {
 
 
   val compoundComparison: P[Exp] = P(comparison ~ (compoundConditionalOp.! ~/ comparison).rep)
-      .map(x => x._1 -> x._2.toList match {
+      .map(x => x._1 -> x._2.toList)
+      .map({
         case (head: Predicate, list: List[(String, Predicate) @unchecked]) => list.foldLeft(head)({
           case (rhs: Predicate,(ci"or", lhs: Predicate)) => Nodes.OrCond(rhs, lhs)
           case (rhs: Predicate,(ci"and", lhs: Predicate)) => Nodes.AndCond(rhs, lhs)

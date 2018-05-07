@@ -16,4 +16,9 @@ object Primitives {
   val decimal: all.Parser[Unit] = P { "." }
   val whitespace: all.Parser[Unit] = P { CharIn(" \n\t") }
 
+  def identifier: P[Nodes.Identifier] = {
+    P(((Primitives.alphabet | Primitives.underscore) ~ (alphabet | Primitives.number | Primitives.underscore).rep).!
+      .opaque("<identifier>"))
+      .filter(!Keyword.keywords.map(_.word).contains(_)).map(Nodes.Identifier)
+  }
 }

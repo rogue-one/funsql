@@ -10,19 +10,13 @@ object Parser {
 
   val White: WhitespaceApi.Wrapper = WhitespaceApi.Wrapper{NoTrace(Primitives.whitespace.rep)}
 
-  def identifier: P[Nodes.Identifier] = {
-    P(((Primitives.alphabet | Primitives.underscore) ~ (alphabet | Primitives.number | Primitives.underscore).rep.?)
-      .!.opaque("<identifier>"))
-      .filter(!Keyword.keywords.map(_.word).contains(_)).map(Nodes.Identifier)
-  }
-
   def function: P[Nodes.Function] = {
     import fastparse.noApi._
-    P (Parser.identifier ~ !Primitives.whitespace ~ "(" ~/ expression.rep(sep=",") ~ ")") map {
+    P (Primitives.identifier ~ !Primitives.whitespace ~ "(" ~/ expression.rep(sep=",") ~ ")") map {
       case (x, y: Seq[ast.Nodes.Exp]) => ast.Nodes.Function(x, y)
     }
   }
 
-  def expression: fastparse.all.P[ast.Nodes.Exp] = MathParser.primary | MathParser.mathExp
+  def expression: fastparse.all.P[ast.Nodes.Exp] = MathParser.mathExp
 
 }
