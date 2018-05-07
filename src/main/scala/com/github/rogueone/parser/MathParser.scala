@@ -11,7 +11,7 @@ object MathParser {
 
   protected val parentheses: P[Exp] = P( "(" ~/ mathExp ~ ")" )
 
-  val primary: P[Exp] = P(LiteralParser.literal | Parser.function | Primitives.identifier  | parentheses )
+  val primary: P[Exp] = P(LiteralParser.literal | Primitives.function | Primitives.identifier  | parentheses )
 
   protected val mulDiv: P[Exp] = P( primary ~ (CharIn("*/").! ~/ primary).rep ).map({
     case (e: Exp, s: Seq[(String, Exp)]) => s.foldLeft(e) {

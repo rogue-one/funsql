@@ -10,13 +10,6 @@ object Parser {
 
   val White: WhitespaceApi.Wrapper = WhitespaceApi.Wrapper{NoTrace(Primitives.whitespace.rep)}
 
-  def function: P[Nodes.Function] = {
-    import fastparse.noApi._
-    P (Primitives.identifier ~ !Primitives.whitespace ~ "(" ~/ expression.rep(sep=",") ~ ")") map {
-      case (x, y: Seq[ast.Nodes.Exp]) => ast.Nodes.Function(x, y)
-    }
-  }
-
   def expression: fastparse.all.P[ast.Nodes.Exp] = MathParser.mathExp
 
 }

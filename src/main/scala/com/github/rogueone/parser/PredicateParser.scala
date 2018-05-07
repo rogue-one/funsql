@@ -49,7 +49,7 @@ object PredicateParser {
     .map({
       case (Some(_), exp: Predicate) => Nodes.NotCond(exp)
       case (None, exp) => exp
-      case _ => ???
+      case x => System.err.println(x.toString()); ???
     })
 
 
