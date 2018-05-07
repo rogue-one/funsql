@@ -8,10 +8,6 @@ import fastparse.{WhitespaceApi, all}
 
 object Parser {
 
-  val expression: fastparse.all.P[ast.Nodes.Exp] = {
-    function | MathParser.mathExp | identifier | LiteralParser.literal
-  }
-
   val White: WhitespaceApi.Wrapper = WhitespaceApi.Wrapper{NoTrace(Primitives.whitespace.rep)}
 
   def identifier: P[Nodes.Identifier] = {
@@ -26,4 +22,7 @@ object Parser {
       case (x, y: Seq[ast.Nodes.Exp]) => ast.Nodes.Function(x, y)
     }
   }
+
+  def expression: fastparse.all.P[ast.Nodes.Exp] = MathParser.primary | MathParser.mathExp
+
 }

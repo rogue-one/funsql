@@ -6,7 +6,6 @@ import com.github.rogueone.ast.Nodes.{Exp, Predicate}
 import Parser.White._
 import fastparse.noApi._
 import com.github.rogueone.utils.Utils._
-import fastparse.noApi
 
 object PredicateParser {
 
@@ -24,7 +23,7 @@ object PredicateParser {
 
   val conditionalOp: P[Unit] = eq | neq | gt | lt | gteq | lteq
 
-  val compoundConditionalOp: P[Unit] = IgnoreCase("or") | IgnoreCase("and")
+  val compoundConditionalOp: P[Unit] = Keyword.Or.parser | Keyword.And.parser
 
   val setComparison: P[(String, Seq[Exp])] = P(Keyword.In.parser.! ~ "(" ~/ MathParser.addSub.rep(min=1, sep=",") ~ ")")
 
@@ -34,7 +33,7 @@ object PredicateParser {
       case (e: Nodes.Exp, (headOp, headExp: Nodes.Exp) :: tail) =>
         tail.foldLeft(opToPredicate(headOp, e, headExp))({
           case (l, (op, r: Nodes.Exp)) => opToPredicate(op, l, r)
-          case (l, (ci"in", r: Seq[Nodes.Exp @unchecked])) => Nodes.InClause(l, r)
+          case (l, ("in", r: Seq[Nodes.Exp @unchecked])) => Nodes.InClause(l, r)
         })
       case (e: Nodes.Exp, (ci"in", nodes: Seq[Nodes.Exp @unchecked]) :: tail) =>
         tail.foldLeft(Nodes.InClause(e, nodes): Predicate)({

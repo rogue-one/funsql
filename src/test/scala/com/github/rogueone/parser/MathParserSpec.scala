@@ -95,4 +95,22 @@ class MathParserSpec extends TestSpec {
     )
   }
 
+
+  it must "handle functions in expressions" in {
+    MathParser.mathExp.parse("foo(10) < 10 OR NOT col1 in (1,'lando',col3)").get.value must be(
+      Nodes.OrCond(
+        Nodes.Lt(
+          Nodes.Function(Nodes.Identifier("foo"), ArrayBuffer(Nodes.IntegerLiteral("10"))),
+          Nodes.IntegerLiteral("10")
+        ),
+        Nodes.NotCond(
+          Nodes.InClause(
+            Nodes.Identifier("col1"),
+            ArrayBuffer(Nodes.IntegerLiteral("1"), Nodes.StringLiteral("lando"), Nodes.Identifier("col3"))
+          )
+        )
+      )
+    )
+  }
+
 }
