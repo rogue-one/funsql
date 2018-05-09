@@ -12,7 +12,9 @@ object Nodes {
 
   sealed trait Node
 
-  sealed trait Exp
+  sealed trait Relation extends Node { def alias: Option[String] }
+
+  sealed trait Exp extends Node
 
   sealed trait Literal extends Exp
 
@@ -81,11 +83,15 @@ object Nodes {
 
   case class SubQuery(lhs: Exp, rhs: Sql.Select) extends Predicate
 
+  case class Table(name: String, alias: Option[String]) extends Relation
+
+  case class Column(name: String, alias: Option[String])
+
   object Sql {
-
-    case class Select(columns: Seq[Nodes.Exp], table: Nodes.Identifier, where: Option[Predicate], groupBy: Seq[Nodes.Exp],
-                      limit: Option[Nodes.IntegerLiteral]) extends Nodes.Exp
+    case class Select(columns: Seq[Nodes.Exp], table: Nodes.Relation, where: Option[Predicate],
+                      groupBy: Seq[Nodes.Exp], limit: Option[Nodes.IntegerLiteral], alias: Option[String])
+      extends Nodes.Exp with Nodes.Relation
+    case object Star extends Exp
   }
-
 
 }

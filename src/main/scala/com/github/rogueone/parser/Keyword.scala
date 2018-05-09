@@ -38,6 +38,8 @@ object Keyword {
 
   object In extends Keyword("in")
 
-  val keywords = Seq(Not, Select, From, Where, Or, And, Limit, Group, By, In)
+  object As extends Keyword("as")
+
+  val keywords = Seq(Not, Select, From, Where, Or, And, Limit, Group, By, In, As)
 
 }

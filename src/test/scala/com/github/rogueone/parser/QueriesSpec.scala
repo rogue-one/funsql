@@ -13,7 +13,7 @@ class QueriesSpec extends TestSpec {
       Sql.Select(
         ArrayBuffer(Nodes.Identifier("col1"), Nodes.Identifier("col3"), Nodes.IntegerLiteral("10"),
           Nodes.StringLiteral("tango")),
-        Nodes.Identifier("table_name"),
+        Nodes.Table("table_name", None),
         Some(
           Nodes.AndCond(
             Nodes.Eq(Nodes.Identifier("col4"), Nodes.Identifier("col4")),
@@ -23,7 +23,7 @@ class QueriesSpec extends TestSpec {
             )
           )
         ),
-        List(), None)
+        List(), None, None)
     )
   }
 
@@ -32,10 +32,11 @@ class QueriesSpec extends TestSpec {
     Queries.select.parse(sql).get.value must be (
       Sql.Select(
         Seq(Nodes.Identifier("col1"), Nodes.Function(Nodes.Identifier("max"), ArrayBuffer(Nodes.Identifier("col3")))),
-        Nodes.Identifier("table_name"),
+        Nodes.Table("table_name", None),
         Some(Nodes.Eq(Nodes.Identifier("col4"),Nodes.Identifier("col4"))),
         Seq(Nodes.Identifier("col1")),
-        Some(Nodes.IntegerLiteral("10"))
+        Some(Nodes.IntegerLiteral("10")),
+        None
       )
     )
   }
@@ -48,17 +49,28 @@ class QueriesSpec extends TestSpec {
           Nodes.Identifier("col1"),
           Nodes.Function(Nodes.Identifier("max"), Seq(Nodes.Identifier("col3")))
         ),
-        Nodes.Identifier("table_name"),
+        Nodes.Table("table_name", None),
         Some(
           Nodes.SubQuery(
             Nodes.Identifier("col4"),
-            Sql.Select(Seq(Nodes.Identifier("col1"), Nodes.Identifier("col2")), Nodes.Identifier("table"), None, Nil, None)
+            Sql.Select(Seq(Nodes.Identifier("col1"), Nodes.Identifier("col2")), Nodes.Table("table", None),
+              None, Nil, None, None)
           )
         ),
         Seq(Nodes.Identifier("col1")),
+        None,
         None
       )
     }
+  }
+
+  it must "parse select * from" in {
+    Queries.select.parse("SELECT * FROM table_name").get.value must be (
+      Sql.Select(Seq(Sql.Star), Nodes.Table("table_name", None), None, Nil, None, None)
+    )
+    Queries.select.parse("SELECT col1,* FROM table_name").get.value must be (
+      Sql.Select(Seq(Nodes.Identifier("col1"), Sql.Star), Nodes.Table("table_name", None), None, Nil, None, None)
+    )
   }
 
 }
