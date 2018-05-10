@@ -18,6 +18,8 @@ object Nodes {
 
   sealed trait Literal extends Exp
 
+  sealed trait Aliasable extends Node { def alias: Option[String] }
+
   sealed abstract class BaseLiteral[T](value: String) extends Literal {
     val data: Try[T]
     def parsed: Boolean = data.isSuccess
@@ -83,15 +85,17 @@ object Nodes {
 
   case class SubQuery(lhs: Exp, rhs: Sql.Select) extends Predicate
 
-  case class Table(name: String, alias: Option[String]) extends Relation
+  case class Table(name: String, alias: Option[String]) extends Relation with Aliasable
 
-  case class Column(name: String, alias: Option[String])
+  case class Column(exp: Exp, alias: Option[String]=None) extends Aliasable
+
+  case object Star extends Aliasable { val alias: Option[String] = None }
 
   object Sql {
-    case class Select(columns: Seq[Nodes.Exp], table: Nodes.Relation, where: Option[Predicate],
+    case class Select(columns: Seq[Nodes.Aliasable], table: Nodes.Relation, where: Option[Predicate],
                       groupBy: Seq[Nodes.Exp], limit: Option[Nodes.IntegerLiteral], alias: Option[String])
       extends Nodes.Exp with Nodes.Relation
-    case object Star extends Exp
+
   }
 
 }

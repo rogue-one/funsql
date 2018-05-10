@@ -11,8 +11,12 @@ class QueriesSpec extends TestSpec {
     val sql = "SELECT col1,col3,10,'tango' FROM table_name WHERE col4 = col4 AND func(col1) < 10"
     Queries.select.parse(sql).get.value must be(
       Sql.Select(
-        ArrayBuffer(Nodes.Identifier("col1"), Nodes.Identifier("col3"), Nodes.IntegerLiteral("10"),
-          Nodes.StringLiteral("tango")),
+        Seq(
+          Nodes.Column(Nodes.Identifier("col1")),
+          Nodes.Column(Nodes.Identifier("col3")),
+          Nodes.Column(Nodes.IntegerLiteral("10")),
+          Nodes.Column(Nodes.StringLiteral("tango"))
+        ),
         Nodes.Table("table_name", None),
         Some(
           Nodes.AndCond(
@@ -27,12 +31,15 @@ class QueriesSpec extends TestSpec {
     )
   }
 
-  it must "parse select queries with group by and limit" in {
-    val sql = "SELECT col1,max(col3) FROM table_name WHERE col4 = col4 GROUP BY col1 LIMIT 10"
+  it must "parse select queries with group by and limit and alias" in {
+    val sql = "SELECT col1,max(col3) as test1 FROM table_name t0 WHERE col4 = col4 GROUP BY col1 LIMIT 10"
     Queries.select.parse(sql).get.value must be (
       Sql.Select(
-        Seq(Nodes.Identifier("col1"), Nodes.Function(Nodes.Identifier("max"), ArrayBuffer(Nodes.Identifier("col3")))),
-        Nodes.Table("table_name", None),
+        Seq(
+          Nodes.Column(Nodes.Identifier("col1")),
+          Nodes.Column(Nodes.Function(Nodes.Identifier("max"), ArrayBuffer(Nodes.Identifier("col3"))), Some("test1"))
+        ),
+        Nodes.Table("table_name", Some("t0")),
         Some(Nodes.Eq(Nodes.Identifier("col4"),Nodes.Identifier("col4"))),
         Seq(Nodes.Identifier("col1")),
         Some(Nodes.IntegerLiteral("10")),
@@ -46,30 +53,30 @@ class QueriesSpec extends TestSpec {
     Queries.select.parse(sql).get.value must be {
       Sql.Select(
         Seq(
-          Nodes.Identifier("col1"),
-          Nodes.Function(Nodes.Identifier("max"), Seq(Nodes.Identifier("col3")))
+          Nodes.Column(Nodes.Identifier("col1")),
+          Nodes.Column(Nodes.Function(Nodes.Identifier("max"), Seq(Nodes.Identifier("col3"))))
         ),
         Nodes.Table("table_name", None),
         Some(
           Nodes.SubQuery(
             Nodes.Identifier("col4"),
-            Sql.Select(Seq(Nodes.Identifier("col1"), Nodes.Identifier("col2")), Nodes.Table("table", None),
-              None, Nil, None, None)
+            Sql.Select(
+              Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Column(Nodes.Identifier("col2"))),
+              Nodes.Table("table", None), None, Nil, None, None)
           )
         ),
-        Seq(Nodes.Identifier("col1")),
-        None,
-        None
+        Seq(Nodes.Identifier("col1")), None, None
       )
     }
   }
 
   it must "parse select * from" in {
     Queries.select.parse("SELECT * FROM table_name").get.value must be (
-      Sql.Select(Seq(Sql.Star), Nodes.Table("table_name", None), None, Nil, None, None)
+      Sql.Select(Seq(Nodes.Star), Nodes.Table("table_name", None), None, Nil, None, None)
     )
     Queries.select.parse("SELECT col1,* FROM table_name").get.value must be (
-      Sql.Select(Seq(Nodes.Identifier("col1"), Sql.Star), Nodes.Table("table_name", None), None, Nil, None, None)
+      Sql.Select(Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Star), Nodes.Table("table_name", None), None, Nil,
+        None, None)
     )
   }
 

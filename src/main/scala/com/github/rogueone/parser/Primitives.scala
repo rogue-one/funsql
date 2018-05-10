@@ -17,7 +17,7 @@ object Primitives {
   val divide: P[Unit] = P { "/" }
   val decimal: P[Unit] = P { "." }
   val whitespace: P[Unit] = P { CharIn(" \n\t") }
-  val star: P[Exp] = P { "*" }.map(_ => Sql.Star)
+  val star: P[Nodes.Star.type] = P { "*" }.map(_ => Nodes.Star)
 
   def identifier: P[Nodes.Identifier] = {
     P(((Primitives.alphabet | Primitives.underscore) ~ (alphabet | Primitives.number |
@@ -34,12 +34,13 @@ object Primitives {
     }
   }
 
-  protected val identifierWithAlias: P[(Nodes.Identifier, Option[String])] =
-    P(identifier ~ whitespace.rep ~ (Keyword.As.parser.? ~ whitespace.rep ~ identifier).!.?)
 
-  def tableName: P[Nodes.Table] = identifierWithAlias.map({ case (name, alias) => Nodes.Table(name.value, alias) })
-
-  def columnName: P[Nodes.Column] = identifierWithAlias.map({ case (name, alias) => Nodes.Column(name.value, alias) })
+  def column: P[Nodes.Aliasable] = P((Parser.expression ~ whitespace.rep ~
+    (Keyword.As.parser.? ~ whitespace.rep ~ identifier.!).?) | star)
+    .map({
+      case (exp: Exp, alias: Option[String] @unchecked) => Nodes.Column(exp, alias)
+      case Nodes.Star => Nodes.Star
+    })
 
   def relation: P[Relation] = {
     import Parser.White._
