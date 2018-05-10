@@ -34,23 +34,22 @@ object Primitives {
     }
   }
 
+  def alias: P[Option[String]] = (Keyword.As.parser.? ~ whitespace.rep ~ identifier.!).?
 
-  def column: P[Nodes.Aliasable] = P((Parser.expression ~ whitespace.rep ~
-    (Keyword.As.parser.? ~ whitespace.rep ~ identifier.!).?) | star)
+  def column: P[Nodes.Aliasable] = P((Parser.expression ~ whitespace.rep ~ alias) | star)
     .map({
       case (exp: Exp, alias: Option[String] @unchecked) => Nodes.Column(exp, alias)
       case Nodes.Star => Nodes.Star
     })
 
-  def relation: P[Relation] = {
+  def relation: P[Nodes.Relation] = {
     import Parser.White._
     import fastparse.noApi._
-    ((identifier.map(x => Nodes.Table(x.value, None)) | ("(" ~ Queries.select ~ ")").map({ x: Relation => x })) ~
-      (Keyword.As.parser.? ~ identifier).?)
-        .map({
-          case (x: Nodes.Table, alias: Option[Identifier]) => x.copy(alias = alias.map(_.value))
-          case (x: Sql.Select, alias: Option[Identifier]) => x.copy(alias = alias.map(_.value))
-        })
+    ((identifier | ("(" ~ Queries.select ~ ")")) ~ alias).map({
+      case (x: Nodes.Identifier, y: Option[String]) => Nodes.Table(x.value, y)
+      case (x: Sql.Select, y: Option[String]) => Sql.SelectRelation(x, y)
+      case _ => ???
+    })
   }
 
 }

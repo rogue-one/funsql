@@ -86,7 +86,7 @@ object PredicateParser {
       })
 
   val predicateOnly: P[Nodes.Predicate] = predicate
-      .filter({ case x: Predicate => true case _ => false})
+      .filter({ case _: Predicate => true case _ => false})
       .map({ case x: Predicate => x case _ => ???})
 
 

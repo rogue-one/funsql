@@ -12,13 +12,15 @@ object Nodes {
 
   sealed trait Node
 
-  sealed trait Relation extends Node { def alias: Option[String] }
+  sealed trait Aliasable extends Node { def alias: Option[String] }
+
+  sealed trait Relation extends Aliasable
+
+  sealed trait Projection extends Aliasable
 
   sealed trait Exp extends Node
 
   sealed trait Literal extends Exp
-
-  sealed trait Aliasable extends Node { def alias: Option[String] }
 
   sealed abstract class BaseLiteral[T](value: String) extends Literal {
     val data: Try[T]
@@ -87,15 +89,17 @@ object Nodes {
 
   case class Table(name: String, alias: Option[String]) extends Relation with Aliasable
 
-  case class Column(exp: Exp, alias: Option[String]=None) extends Aliasable
+  case class Column(exp: Exp, alias: Option[String]=None) extends Projection
 
-  case object Star extends Aliasable { val alias: Option[String] = None }
+  case object Star extends Projection { val alias: Option[String] = None }
 
   object Sql {
-    case class Select(columns: Seq[Nodes.Aliasable], table: Nodes.Relation, where: Option[Predicate],
-                      groupBy: Seq[Nodes.Exp], limit: Option[Nodes.IntegerLiteral], alias: Option[String])
-      extends Nodes.Exp with Nodes.Relation
+    case class Select(columns: Seq[Nodes.Projection], table: Nodes.Relation,
+                      where: Option[Predicate], groupBy: Seq[Nodes.Exp]) extends Exp
 
+    case class SelectRelation(select: Select, alias: Option[String]) extends Relation
+
+    case class UberSelect(select: Select, limit: Option[IntegerLiteral]) extends Node
   }
 
 }

@@ -2,7 +2,8 @@ package com.github.rogueone.parser
 
 import com.github.rogueone.TestSpec
 import com.github.rogueone.ast.Nodes
-import com.github.rogueone.ast.Nodes.Sql
+import com.github.rogueone.ast.Nodes.{Identifier, IntegerLiteral, Sql}
+
 import scala.collection.mutable.ArrayBuffer
 
 class QueriesSpec extends TestSpec {
@@ -27,23 +28,24 @@ class QueriesSpec extends TestSpec {
             )
           )
         ),
-        List(), None, None)
+        Nil)
     )
   }
 
   it must "parse select queries with group by and limit and alias" in {
     val sql = "SELECT col1,max(col3) as test1 FROM table_name t0 WHERE col4 = col4 GROUP BY col1 LIMIT 10"
-    Queries.select.parse(sql).get.value must be (
-      Sql.Select(
-        Seq(
-          Nodes.Column(Nodes.Identifier("col1")),
-          Nodes.Column(Nodes.Function(Nodes.Identifier("max"), ArrayBuffer(Nodes.Identifier("col3"))), Some("test1"))
+    Queries.uberSelect.parse(sql).get.value must be(
+      Sql.UberSelect(
+        Sql.Select(
+          Seq(
+            Nodes.Column(Nodes.Identifier("col1")),
+            Nodes.Column(Nodes.Function(Nodes.Identifier("max"), ArrayBuffer(Nodes.Identifier("col3"))), Some("test1"))
+          ),
+          Nodes.Table("table_name", Some("t0")),
+          Some(Nodes.Eq(Nodes.Identifier("col4"), Nodes.Identifier("col4"))),
+          Seq(Nodes.Identifier("col1"))
         ),
-        Nodes.Table("table_name", Some("t0")),
-        Some(Nodes.Eq(Nodes.Identifier("col4"),Nodes.Identifier("col4"))),
-        Seq(Nodes.Identifier("col1")),
-        Some(Nodes.IntegerLiteral("10")),
-        None
+        Some(IntegerLiteral("10"))
       )
     )
   }
@@ -62,21 +64,28 @@ class QueriesSpec extends TestSpec {
             Nodes.Identifier("col4"),
             Sql.Select(
               Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Column(Nodes.Identifier("col2"))),
-              Nodes.Table("table", None), None, Nil, None, None)
+              Nodes.Table("table", None), None, Nil)
           )
         ),
-        Seq(Nodes.Identifier("col1")), None, None
+        Seq(Nodes.Identifier("col1"))
       )
     }
   }
 
   it must "parse select * from" in {
-    Queries.select.parse("SELECT * FROM table_name").get.value must be (
-      Sql.Select(Seq(Nodes.Star), Nodes.Table("table_name", None), None, Nil, None, None)
+    Queries.select.parse("SELECT col1 as x1,* FROM table_name").get.value must be(
+      Sql.Select(
+        Seq(
+          Nodes.Column(Nodes.Identifier("col1"), Some("x1")),
+          Nodes.Star
+        ),
+        Nodes.Table("table_name", None), None, Nil)
     )
-    Queries.select.parse("SELECT col1,* FROM table_name").get.value must be (
-      Sql.Select(Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Star), Nodes.Table("table_name", None), None, Nil,
-        None, None)
+    Queries.select.parse("SELECT col1,* FROM table_name").get.value must be(
+      Sql.Select(
+        Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Star),
+        Nodes.Table("table_name", None),
+        None, Nil)
     )
   }
 
