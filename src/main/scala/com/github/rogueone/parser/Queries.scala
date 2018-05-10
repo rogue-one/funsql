@@ -32,13 +32,13 @@ object Queries {
     (Keyword.On.parser ~ PredicateParser.predicateOnly).?).map({case (x,y) => InnerJoin(x, y)})
 
   def leftJoinCond: P[LeftJoin] = P(Keyword.Left.parser ~ Keyword.Outer.parser ~ Keyword.Join.parser ~/
-    Keyword.On.parser ~ Primitives.relation ~ PredicateParser.predicateOnly).map({ case (x,y) => LeftJoin(x, y) })
+     Primitives.relation ~ Keyword.On.parser  ~ PredicateParser.predicateOnly).map({ case (x,y) => LeftJoin(x, y) })
 
-  def rightJoinCond: P[RightJoin] =  P(Keyword.Right.parser ~ Keyword.Outer.parser ~ Keyword.Join.parser
-    ~/ Keyword.On.parser ~ Primitives.relation ~ PredicateParser.predicateOnly).map({ case (x,y) => RightJoin(x, y) })
+  def rightJoinCond: P[RightJoin] =  P(Keyword.Right.parser ~ Keyword.Outer.parser ~ Keyword.Join.parser ~/
+    Primitives.relation ~ Keyword.On.parser ~ PredicateParser.predicateOnly).map({ case (x,y) => RightJoin(x, y) })
 
   def fullJoinCond: P[FullJoin] = P(Keyword.Full.parser ~ Keyword.Outer.parser ~ Keyword.Join.parser ~/
-    Keyword.On.parser ~ Primitives.relation ~ PredicateParser.predicateOnly).map({ case (x,y) => FullJoin(x, y) })
+    Primitives.relation ~ Keyword.On.parser ~ PredicateParser.predicateOnly).map({ case (x,y) => FullJoin(x, y) })
 
   def crossJoinCond: P[CrossJoin] = P(Keyword.Cross.parser ~ Keyword.Join.parser ~/ Primitives.relation)
     .map(x => CrossJoin(x))

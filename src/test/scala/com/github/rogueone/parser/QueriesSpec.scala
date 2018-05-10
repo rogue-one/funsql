@@ -1,7 +1,7 @@
 package com.github.rogueone.parser
 
 import com.github.rogueone.TestSpec
-import com.github.rogueone.ast.{InnerJoin, Nodes}
+import com.github.rogueone.ast.{FullJoin, InnerJoin, LeftJoin, Nodes}
 import com.github.rogueone.ast.Nodes.{Identifier, IntegerLiteral, Sql}
 
 import scala.collection.mutable.ArrayBuffer
@@ -116,6 +116,36 @@ class QueriesSpec extends TestSpec {
           InnerJoin(Nodes.Table("table2",None),Some(Nodes.Eq(Identifier("col1"), Nodes.Identifier("col2"))))
         ),
         Some(Nodes.Eq(Identifier("col3"), Nodes.DateLiteral("2017-08-01"))), List()
+      )
+    )
+  }
+
+  it must "parse queries with multiple joins" in {
+    val sql =
+      """SELECT col1, col2 x1, col3 FROM table1
+        |INNER JOIN table2 ON col1 = col2
+        |LEFT OUTER JOIN table3 ON col3 = col4
+        |FULL OUTER JOIN table4 ON col5 = col6
+        |WHERE col3 = DATE '2017-08-01'""".stripMargin
+    Queries.basicSelect.parse(sql).get.value must be (
+      Sql.BasicSelect(
+        Seq(
+          Nodes.Column(Nodes.Identifier("col1"),None),
+          Nodes.Column(Nodes.Identifier("col2"),Some("x1")),
+          Nodes.Column(Nodes.Identifier("col3"),None)
+        ),
+        Nodes.JoinedRelation(
+          Nodes.JoinedRelation(
+            Nodes.JoinedRelation(
+              Nodes.Table("table1", None),
+              InnerJoin(Nodes.Table("table2",None), Some(Nodes.Eq(Identifier("col1"), Nodes.Identifier("col2"))))
+            ),
+            LeftJoin(Nodes.Table("table3",None), Nodes.Eq(Identifier("col3"),Identifier("col4")))
+          ),
+          FullJoin(Nodes.Table("table4", None), Nodes.Eq(Identifier("col5"), Identifier("col6")))
+        ),
+        Some(Nodes.Eq(Identifier("col3"), Nodes.DateLiteral("2017-08-01"))),
+        List()
       )
     )
   }
