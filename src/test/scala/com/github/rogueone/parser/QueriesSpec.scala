@@ -3,7 +3,6 @@ package com.github.rogueone.parser
 import com.github.rogueone.TestSpec
 import com.github.rogueone.ast.Nodes
 import com.github.rogueone.ast.Nodes.{Identifier, IntegerLiteral, Sql}
-
 import scala.collection.mutable.ArrayBuffer
 
 class QueriesSpec extends TestSpec {

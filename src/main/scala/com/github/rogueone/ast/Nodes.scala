@@ -93,6 +93,8 @@ object Nodes {
 
   case object Star extends Projection { val alias: Option[String] = None }
 
+  case class JoinedTable(left: Relation, join: Join, right: Relation, next: Option[JoinedTable]=None)
+
   object Sql {
     case class BasicSelect(columns: Seq[Nodes.Projection], table: Nodes.Relation,
                            where: Option[Predicate], groupBy: Seq[Nodes.Exp]) extends Exp

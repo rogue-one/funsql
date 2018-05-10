@@ -1,10 +1,11 @@
 package com.github.rogueone.parser
 
 import com.github.rogueone.ast.Nodes.Sql
-import com.github.rogueone.ast.Nodes
+import com.github.rogueone.ast._
 import com.github.rogueone.ast.Nodes.Sql.Select
 import fastparse.noApi._
 import com.github.rogueone.parser.Parser.White._
+import fastparse.core
 
 object Queries {
 
@@ -19,5 +20,19 @@ object Queries {
 
   val select: P[Select] = P(basicSelect ~ (Keyword.Limit.parser ~ LiteralParser.numberLiteral).?)
     .map({ case (x,y) => Select(x, y)})
+
+  val innerJoinCond: P[InnerJoin] = P(Keyword.Inner.parser.? ~ Keyword.Join.parser ~
+    (Keyword.On.parser ~ PredicateParser.predicateOnly).?).map(x => InnerJoin(x))
+
+  val leftJoinCond: P[LeftJoin] = P(Keyword.Left.parser ~ Keyword.Join.parser ~ Keyword.On.parser ~
+    PredicateParser.predicateOnly).map(x => LeftJoin(x))
+
+  val rightJoinCond: P[RightJoin] =  P(Keyword.Right.parser ~ Keyword.Join.parser ~ Keyword.On.parser ~
+    PredicateParser.predicateOnly).map(x => RightJoin(x))
+
+  val fullJoinCond: P[FullJoin] = P(Keyword.Full.parser ~ Keyword.Join.parser ~ Keyword.On.parser ~
+    PredicateParser.predicateOnly).map(x => FullJoin(x))
+
+  val crossJoinCond: P[CrossJoin.type] = P(Keyword.Cross.parser ~ Keyword.Join.parser).map(_ => CrossJoin)
 
 }

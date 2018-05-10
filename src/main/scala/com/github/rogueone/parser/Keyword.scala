@@ -40,6 +40,24 @@ object Keyword {
 
   object As extends Keyword("as")
 
-  val keywords = Seq(Not, Select, From, Where, Or, And, Limit, Group, By, In, As)
+  object Join extends Keyword("join")
+
+  object On extends Keyword("on")
+
+  object Inner extends Keyword("inner")
+
+  object Left extends Keyword("left")
+
+  object Right extends Keyword("right")
+
+  object Full extends Keyword("full")
+
+  object Cross extends Keyword("cross")
+
+  object Outer extends Keyword("outer")
+
+  val keywords = Seq(Not, Select, From, Where, Or, And, Limit, Group, By, In, As, Join, On, Inner, Left, Right, Full,
+    Cross, Outer)
+
 
 }
