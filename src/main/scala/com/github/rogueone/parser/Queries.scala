@@ -1,38 +1,48 @@
 package com.github.rogueone.parser
 
-import com.github.rogueone.ast.Nodes.Sql
+import com.github.rogueone.ast.Nodes.{JoinedRelation, Sql}
 import com.github.rogueone.ast._
 import com.github.rogueone.ast.Nodes.Sql.Select
 import fastparse.noApi._
 import com.github.rogueone.parser.Parser.White._
-import fastparse.core
 
 object Queries {
 
-  val basicSelect: P[Sql.BasicSelect] = P(Keyword.Select.parser ~ (Primitives.column | Primitives.star).rep(min=1, sep = ",") ~
-    Keyword.From.parser ~ Primitives.relation ~ (Keyword.Where.parser ~ PredicateParser.predicateOnly).? ~
-    (Keyword.Group.parser ~ Keyword.By.parser ~ Parser.expression.rep(min=1, sep=",")).?)
-    .map({ case (columns: Seq[Nodes.Projection @unchecked], tableName, predicate, groupBy) =>
-          Sql.BasicSelect(columns, tableName, predicate, groupBy.getOrElse(Nil)) })
+  def basicSelect: P[Sql.BasicSelect] = P(Keyword.Select.parser ~ (Primitives.column | Primitives.star).rep(min=1, sep = ",") ~
+    Keyword.From.parser ~ Primitives.relation ~ joinCond.rep.map(_.toList) ~ (Keyword.Where.parser
+    ~ PredicateParser.predicateOnly).? ~ (Keyword.Group.parser ~ Keyword.By.parser ~ Parser.expression.rep(min=1, sep=",")).?)
+    .map({
+      case (columns: Seq[Nodes.Projection @unchecked], tableName, Nil ,predicate, groupBy) =>
+          Sql.BasicSelect(columns, tableName, predicate, groupBy.getOrElse(Nil))
+      case (columns: Seq[Nodes.Projection @unchecked], tableName, (head :: tail) ,predicate, groupBy) =>
+        Sql.BasicSelect (
+          columns,
+          tail.foldLeft(JoinedRelation(tableName, head))({ case (acc, join) => JoinedRelation(acc, join) }),
+          predicate, groupBy.getOrElse(Nil)
+        )
+    })
 
-  val selectRelation: P[Sql.SelectRelation] = P("(" ~ basicSelect ~ ")" ~ Primitives.alias)
+  def selectRelation: P[Sql.SelectRelation] = P("(" ~ basicSelect ~ ")" ~ Primitives.alias)
       .map({ case (x: Sql.BasicSelect, y: Option[String]) => Sql.SelectRelation(x, y)})
 
-  val select: P[Select] = P(basicSelect ~ (Keyword.Limit.parser ~ LiteralParser.numberLiteral).?)
+  def select: P[Select] = P(basicSelect ~ (Keyword.Limit.parser ~ LiteralParser.numberLiteral).?)
     .map({ case (x,y) => Select(x, y)})
 
-  val innerJoinCond: P[InnerJoin] = P(Keyword.Inner.parser.? ~ Keyword.Join.parser ~
-    (Keyword.On.parser ~ PredicateParser.predicateOnly).?).map(x => InnerJoin(x))
+  def innerJoinCond: P[InnerJoin] = P(Keyword.Inner.parser.? ~ Keyword.Join.parser ~/ Primitives.relation ~
+    (Keyword.On.parser ~ PredicateParser.predicateOnly).?).map({case (x,y) => InnerJoin(x, y)})
 
-  val leftJoinCond: P[LeftJoin] = P(Keyword.Left.parser ~ Keyword.Join.parser ~ Keyword.On.parser ~
-    PredicateParser.predicateOnly).map(x => LeftJoin(x))
+  def leftJoinCond: P[LeftJoin] = P(Keyword.Left.parser ~ Keyword.Outer.parser ~ Keyword.Join.parser ~/
+    Keyword.On.parser ~ Primitives.relation ~ PredicateParser.predicateOnly).map({ case (x,y) => LeftJoin(x, y) })
 
-  val rightJoinCond: P[RightJoin] =  P(Keyword.Right.parser ~ Keyword.Join.parser ~ Keyword.On.parser ~
-    PredicateParser.predicateOnly).map(x => RightJoin(x))
+  def rightJoinCond: P[RightJoin] =  P(Keyword.Right.parser ~ Keyword.Outer.parser ~ Keyword.Join.parser
+    ~/ Keyword.On.parser ~ Primitives.relation ~ PredicateParser.predicateOnly).map({ case (x,y) => RightJoin(x, y) })
 
-  val fullJoinCond: P[FullJoin] = P(Keyword.Full.parser ~ Keyword.Join.parser ~ Keyword.On.parser ~
-    PredicateParser.predicateOnly).map(x => FullJoin(x))
+  def fullJoinCond: P[FullJoin] = P(Keyword.Full.parser ~ Keyword.Outer.parser ~ Keyword.Join.parser ~/
+    Keyword.On.parser ~ Primitives.relation ~ PredicateParser.predicateOnly).map({ case (x,y) => FullJoin(x, y) })
 
-  val crossJoinCond: P[CrossJoin.type] = P(Keyword.Cross.parser ~ Keyword.Join.parser).map(_ => CrossJoin)
+  def crossJoinCond: P[CrossJoin] = P(Keyword.Cross.parser ~ Keyword.Join.parser ~/ Primitives.relation)
+    .map(x => CrossJoin(x))
+
+  def joinCond: P[Join] = (leftJoinCond | rightJoinCond | fullJoinCond | crossJoinCond | innerJoinCond)
 
 }

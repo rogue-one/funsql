@@ -1,8 +1,9 @@
 package com.github.rogueone.parser
 
 import com.github.rogueone.TestSpec
-import com.github.rogueone.ast.Nodes
+import com.github.rogueone.ast.{InnerJoin, Nodes}
 import com.github.rogueone.ast.Nodes.{Identifier, IntegerLiteral, Sql}
+
 import scala.collection.mutable.ArrayBuffer
 
 class QueriesSpec extends TestSpec {
@@ -98,6 +99,24 @@ class QueriesSpec extends TestSpec {
         Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Star),
         Nodes.Table("table_name", None),
         None, Nil)
+    )
+  }
+
+  it must "parse queries with joins" in {
+    val sql ="SELECT col1, col2 x1, col3 FROM table1 INNER JOIN table2 ON col1 = col2 WHERE col3 = DATE '2017-08-01'"
+    Queries.basicSelect.parse(sql).get.value must be (
+      Sql.BasicSelect(
+        Seq(
+          Nodes.Column(Identifier("col1"),None),
+          Nodes.Column(Nodes.Identifier("col2"), Some("x1")),
+          Nodes.Column(Identifier("col3"),None)
+        ),
+        Nodes.JoinedRelation(
+          Nodes.Table("table1",None),
+          InnerJoin(Nodes.Table("table2",None),Some(Nodes.Eq(Identifier("col1"), Nodes.Identifier("col2"))))
+        ),
+        Some(Nodes.Eq(Identifier("col3"), Nodes.DateLiteral("2017-08-01"))), List()
+      )
     )
   }
 

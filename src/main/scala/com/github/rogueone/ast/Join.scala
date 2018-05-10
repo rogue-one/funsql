@@ -1,15 +1,15 @@
 package com.github.rogueone.ast
 
-import com.github.rogueone.ast.Nodes.Predicate
+import com.github.rogueone.ast.Nodes.{Predicate, Relation}
 
 sealed trait Join
 
-case class InnerJoin(condition: Option[Predicate]) extends Join
+case class InnerJoin(relation: Relation, condition: Option[Predicate]) extends Join
 
-case class LeftJoin(condition: Predicate) extends Join
+case class LeftJoin(relation: Relation, condition: Predicate) extends Join
 
-case class RightJoin(condition: Predicate) extends Join
+case class RightJoin(relation: Relation, condition: Predicate) extends Join
 
-case class FullJoin(condition: Predicate) extends Join
+case class FullJoin(relation: Relation, condition: Predicate) extends Join
 
-object CrossJoin extends Join
+case class CrossJoin(relation: Relation) extends Join

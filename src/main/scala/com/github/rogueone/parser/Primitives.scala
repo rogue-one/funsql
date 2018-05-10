@@ -45,7 +45,7 @@ object Primitives {
   def relation: P[Nodes.Relation] = {
     import Parser.White._
     import fastparse.noApi._
-    ((identifier | ("(" ~ Queries.basicSelect ~ ")")) ~ alias).map({
+    ((identifier | ("(" ~ Queries.basicSelect ~/ ")")) ~ alias).map({
       case (x: Nodes.Identifier, y: Option[String]) => Nodes.Table(x.value, y)
       case (x: Sql.BasicSelect, y: Option[String]) => Sql.SelectRelation(x, y)
       case _ => ???
