@@ -85,21 +85,21 @@ object Nodes {
 
   case class InClause(lhs: Exp, rhs: Seq[Exp]) extends Predicate
 
-  case class SubQuery(lhs: Exp, rhs: Sql.Select) extends Predicate
+  case class SubQuery(lhs: Exp, rhs: Sql.BasicSelect) extends Predicate
 
-  case class Table(name: String, alias: Option[String]) extends Relation with Aliasable
+  case class Table(name: String, alias: Option[String]=None) extends Relation with Aliasable
 
   case class Column(exp: Exp, alias: Option[String]=None) extends Projection
 
   case object Star extends Projection { val alias: Option[String] = None }
 
   object Sql {
-    case class Select(columns: Seq[Nodes.Projection], table: Nodes.Relation,
-                      where: Option[Predicate], groupBy: Seq[Nodes.Exp]) extends Exp
+    case class BasicSelect(columns: Seq[Nodes.Projection], table: Nodes.Relation,
+                           where: Option[Predicate], groupBy: Seq[Nodes.Exp]) extends Exp
 
-    case class SelectRelation(select: Select, alias: Option[String]) extends Relation
+    case class SelectRelation(select: BasicSelect, alias: Option[String]) extends Relation
 
-    case class UberSelect(select: Select, limit: Option[IntegerLiteral]) extends Node
+    case class Select(select: BasicSelect, limit: Option[IntegerLiteral]) extends Node
   }
 
 }

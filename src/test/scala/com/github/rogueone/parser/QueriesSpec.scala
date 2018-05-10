@@ -10,8 +10,8 @@ class QueriesSpec extends TestSpec {
 
   "Queries" must "parse a select query" in {
     val sql = "SELECT col1,col3,10,'tango' FROM table_name WHERE col4 = col4 AND func(col1) < 10"
-    Queries.select.parse(sql).get.value must be(
-      Sql.Select(
+    Queries.basicSelect.parse(sql).get.value must be(
+      Sql.BasicSelect(
         Seq(
           Nodes.Column(Nodes.Identifier("col1")),
           Nodes.Column(Nodes.Identifier("col3")),
@@ -32,11 +32,11 @@ class QueriesSpec extends TestSpec {
     )
   }
 
-  it must "parse select queries with group by and limit and alias" in {
+  it must "parse a uber select" in {
     val sql = "SELECT col1,max(col3) as test1 FROM table_name t0 WHERE col4 = col4 GROUP BY col1 LIMIT 10"
-    Queries.uberSelect.parse(sql).get.value must be(
-      Sql.UberSelect(
-        Sql.Select(
+    Queries.select.parse(sql).get.value must be(
+      Sql.Select(
+        Sql.BasicSelect(
           Seq(
             Nodes.Column(Nodes.Identifier("col1")),
             Nodes.Column(Nodes.Function(Nodes.Identifier("max"), ArrayBuffer(Nodes.Identifier("col3"))), Some("test1"))
@@ -50,10 +50,10 @@ class QueriesSpec extends TestSpec {
     )
   }
 
-  it must "parse query with sub query" in {
+  it must "parse query with set comparison with sub query" in {
     val sql = "SELECT col1,max(col3) FROM table_name WHERE col4 IN (select col1, col2 FROM table) GROUP BY col1"
-    Queries.select.parse(sql).get.value must be {
-      Sql.Select(
+    Queries.basicSelect.parse(sql).get.value must be {
+      Sql.BasicSelect(
         Seq(
           Nodes.Column(Nodes.Identifier("col1")),
           Nodes.Column(Nodes.Function(Nodes.Identifier("max"), Seq(Nodes.Identifier("col3"))))
@@ -62,7 +62,7 @@ class QueriesSpec extends TestSpec {
         Some(
           Nodes.SubQuery(
             Nodes.Identifier("col4"),
-            Sql.Select(
+            Sql.BasicSelect(
               Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Column(Nodes.Identifier("col2"))),
               Nodes.Table("table", None), None, Nil)
           )
@@ -72,17 +72,30 @@ class QueriesSpec extends TestSpec {
     }
   }
 
-  it must "parse select * from" in {
-    Queries.select.parse("SELECT col1 as x1,* FROM table_name").get.value must be(
+  it must "parse query with subquery" in {
+    val sql = "SELECT col1,col2 FROM (SELECT * FROM table1) WHERE col4 = col5"
+    Queries.select.parse(sql).get.value must be (
       Sql.Select(
+        Sql.BasicSelect(
+          Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Column(Nodes.Identifier("col2"))),
+          Sql.SelectRelation(Sql.BasicSelect(Seq(Nodes.Star), Nodes.Table("table1"), None, Nil), None),
+          Some(Nodes.Eq(Nodes.Identifier("col4"), Nodes.Identifier("col5"))), Nil
+        ), None
+      )
+    )
+  }
+
+  it must "parse select * from" in {
+    Queries.basicSelect.parse("SELECT col1 as x1,* FROM table_name").get.value must be(
+      Sql.BasicSelect(
         Seq(
           Nodes.Column(Nodes.Identifier("col1"), Some("x1")),
           Nodes.Star
         ),
         Nodes.Table("table_name", None), None, Nil)
     )
-    Queries.select.parse("SELECT col1,* FROM table_name").get.value must be(
-      Sql.Select(
+    Queries.basicSelect.parse("SELECT col1,* FROM table_name").get.value must be (
+      Sql.BasicSelect(
         Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Star),
         Nodes.Table("table_name", None),
         None, Nil)

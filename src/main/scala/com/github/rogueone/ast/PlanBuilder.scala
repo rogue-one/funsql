@@ -2,7 +2,7 @@ package com.github.rogueone.ast
 
 import com.github.rogueone.ast.Nodes.Sql
 
-class PlanBuilder(query: Sql.Select) {
+class PlanBuilder(query: Sql.BasicSelect) {
 
   def getPlan = {
 //    query match {

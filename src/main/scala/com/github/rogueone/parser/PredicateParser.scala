@@ -26,10 +26,10 @@ object PredicateParser {
   val compoundConditionalOp: P[Unit] = Keyword.Or.parser | Keyword.And.parser
 
   val setComparison: P[(String, Seq[Exp])] =
-    P(Keyword.In.parser.! ~ "(" ~/ (Queries.select | Parser.expression.rep(min = 1, sep = ",")) ~ ")")
+    P(Keyword.In.parser.! ~ "(" ~/ (Queries.basicSelect | Parser.expression.rep(min = 1, sep = ",")) ~ ")")
     .map({
       case (x, y: Seq[Nodes.Exp @unchecked]) => x -> y
-      case (x, y: Sql.Select) => x -> Seq(y)
+      case (x, y: Sql.BasicSelect) => x -> Seq(y)
       case _ => ???
     })
 
@@ -40,19 +40,19 @@ object PredicateParser {
       case (e: Nodes.Exp, (headOp, headExp: Nodes.Exp) :: tail) =>
         tail.foldLeft(opToPredicate(headOp, e, headExp))({
           case (l, (op, r: Nodes.Exp)) => opToPredicate(op, l, r)
-          case (l, (ci"in", (r: Sql.Select) :: Nil)) => Nodes.SubQuery(l, r)
+          case (l, (ci"in", (r: Sql.BasicSelect) :: Nil)) => Nodes.SubQuery(l, r)
           case (l, ("in", r: Seq[Nodes.Exp @unchecked])) => Nodes.InClause(l, r)
         })
-      case (e: Nodes.Exp, (ci"in", (query: Sql.Select):: Nil) :: tail) =>
+      case (e: Nodes.Exp, (ci"in", (query: Sql.BasicSelect):: Nil) :: tail) =>
         tail.foldLeft(Nodes.SubQuery(e, query): Predicate)({
           case (l, (op, r: Nodes.Exp)) => opToPredicate(op, l, r)
-          case (l, (ci"in", (r: Sql.Select) :: Nil)) => Nodes.SubQuery(l, r)
+          case (l, (ci"in", (r: Sql.BasicSelect) :: Nil)) => Nodes.SubQuery(l, r)
           case (l, (ci"in", r: Seq[Nodes.Exp @unchecked])) => Nodes.InClause(l, r)
         })
       case (e: Nodes.Exp, (ci"in", nodes: Seq[Nodes.Exp @unchecked]) :: tail) =>
         tail.foldLeft(Nodes.InClause(e, nodes): Predicate)({
           case (l, (op, r: Nodes.Exp)) => opToPredicate(op, l, r)
-          case (l, (ci"in", (r: Sql.Select) :: Nil)) => Nodes.SubQuery(l, r)
+          case (l, (ci"in", (r: Sql.BasicSelect) :: Nil)) => Nodes.SubQuery(l, r)
           case (l, (ci"in", r: Seq[Nodes.Exp @unchecked])) => Nodes.InClause(l, r)
         })
       case (x, Nil) => x
