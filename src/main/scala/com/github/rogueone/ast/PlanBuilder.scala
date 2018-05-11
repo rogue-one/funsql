@@ -2,11 +2,11 @@ package com.github.rogueone.ast
 
 import com.github.rogueone.ast.Nodes.Sql
 
-class PlanBuilder(query: Sql.BasicSelect) {
+class PlanBuilder(query: Sql.SelectExpression) {
 
   def getPlan = {
-//    query match {
-//      case x: Sql.Select => Plan.LoadTable(x.table.value, x.columns, None).copy(next = )
+//    query.relation match {
+//      case x: Nodes.Table => x
 //    }
   }
 

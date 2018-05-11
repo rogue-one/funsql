@@ -11,7 +11,7 @@ class QueriesSpec extends TestSpec {
   "Queries" must "parse a select query" in {
     val sql = "SELECT col1,col3,10,'tango' FROM table_name WHERE col4 = col4 AND func(col1) < 10"
     Queries.basicSelect.parse(sql).get.value must be(
-      Sql.BasicSelect(
+      Sql.SelectExpression(
         Seq(
           Nodes.Column(Nodes.Identifier("col1")),
           Nodes.Column(Nodes.Identifier("col3")),
@@ -36,7 +36,7 @@ class QueriesSpec extends TestSpec {
     val sql = "SELECT col1,max(col3) as test1 FROM table_name t0 WHERE col4 = col4 GROUP BY col1 LIMIT 10"
     Queries.select.parse(sql).get.value must be(
       Sql.Select(
-        Sql.BasicSelect(
+        Sql.SelectExpression(
           Seq(
             Nodes.Column(Nodes.Identifier("col1")),
             Nodes.Column(Nodes.Function(Nodes.Identifier("max"), ArrayBuffer(Nodes.Identifier("col3"))), Some("test1"))
@@ -53,7 +53,7 @@ class QueriesSpec extends TestSpec {
   it must "parse query with set comparison with sub query" in {
     val sql = "SELECT col1,max(col3) FROM table_name WHERE col4 IN (select col1, col2 FROM table) GROUP BY col1"
     Queries.basicSelect.parse(sql).get.value must be {
-      Sql.BasicSelect(
+      Sql.SelectExpression(
         Seq(
           Nodes.Column(Nodes.Identifier("col1")),
           Nodes.Column(Nodes.Function(Nodes.Identifier("max"), Seq(Nodes.Identifier("col3"))))
@@ -62,7 +62,7 @@ class QueriesSpec extends TestSpec {
         Some(
           Nodes.SubQuery(
             Nodes.Identifier("col4"),
-            Sql.BasicSelect(
+            Sql.SelectExpression(
               Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Column(Nodes.Identifier("col2"))),
               Nodes.Table("table", None), None, Nil)
           )
@@ -76,9 +76,9 @@ class QueriesSpec extends TestSpec {
     val sql = "SELECT col1,col2 FROM (SELECT * FROM table1) WHERE col4 = col5"
     Queries.select.parse(sql).get.value must be (
       Sql.Select(
-        Sql.BasicSelect(
+        Sql.SelectExpression(
           Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Column(Nodes.Identifier("col2"))),
-          Sql.SelectRelation(Sql.BasicSelect(Seq(Nodes.Star), Nodes.Table("table1"), None, Nil), None),
+          Sql.SimpleSelectRelation(Sql.SelectExpression(Seq(Nodes.Star), Nodes.Table("table1"), None, Nil), None),
           Some(Nodes.Eq(Nodes.Identifier("col4"), Nodes.Identifier("col5"))), Nil
         ), None
       )
@@ -87,7 +87,7 @@ class QueriesSpec extends TestSpec {
 
   it must "parse select * from" in {
     Queries.basicSelect.parse("SELECT col1 as x1,* FROM table_name").get.value must be(
-      Sql.BasicSelect(
+      Sql.SelectExpression(
         Seq(
           Nodes.Column(Nodes.Identifier("col1"), Some("x1")),
           Nodes.Star
@@ -95,7 +95,7 @@ class QueriesSpec extends TestSpec {
         Nodes.Table("table_name", None), None, Nil)
     )
     Queries.basicSelect.parse("SELECT col1,* FROM table_name").get.value must be (
-      Sql.BasicSelect(
+      Sql.SelectExpression(
         Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Star),
         Nodes.Table("table_name", None),
         None, Nil)
@@ -103,19 +103,22 @@ class QueriesSpec extends TestSpec {
   }
 
   it must "parse queries with joins" in {
-    val sql ="SELECT col1, col2 x1, col3 FROM table1 INNER JOIN table2 ON col1 = col2 WHERE col3 = DATE '2017-08-01'"
+    val sql ="SELECT t1.col1, t1.col2 x1, col3 FROM table1 t1 INNER JOIN table2 t2 ON t1.col1 = t2.col2 WHERE col3 = 100"
     Queries.basicSelect.parse(sql).get.value must be (
-      Sql.BasicSelect(
+      Sql.SelectExpression(
         Seq(
-          Nodes.Column(Identifier("col1"),None),
-          Nodes.Column(Nodes.Identifier("col2"), Some("x1")),
-          Nodes.Column(Identifier("col3"),None)
+          Nodes.Column(Identifier("col1", Some("t1"))),
+          Nodes.Column(Nodes.Identifier("col2", Some("t1")), Some("x1")),
+          Nodes.Column(Identifier("col3"))
         ),
         Nodes.JoinedRelation(
-          Nodes.Table("table1",None),
-          InnerJoin(Nodes.Table("table2",None),Some(Nodes.Eq(Identifier("col1"), Nodes.Identifier("col2"))))
+          Nodes.Table("table1",Some("t1")),
+          InnerJoin(
+            Nodes.Table("table2",Some("t2")),
+            Some(Nodes.Eq(Identifier("col1", Some("t1")), Nodes.Identifier("col2", Some("t2"))))
+          )
         ),
-        Some(Nodes.Eq(Identifier("col3"), Nodes.DateLiteral("2017-08-01"))), List()
+        Some(Nodes.Eq(Identifier("col3"), Nodes.IntegerLiteral("100"))), List()
       )
     )
   }
@@ -128,7 +131,7 @@ class QueriesSpec extends TestSpec {
         |FULL OUTER JOIN table4 ON col5 = col6
         |WHERE col3 = DATE '2017-08-01'""".stripMargin
     Queries.basicSelect.parse(sql).get.value must be (
-      Sql.BasicSelect(
+      Sql.SelectExpression(
         Seq(
           Nodes.Column(Nodes.Identifier("col1"),None),
           Nodes.Column(Nodes.Identifier("col2"),Some("x1")),

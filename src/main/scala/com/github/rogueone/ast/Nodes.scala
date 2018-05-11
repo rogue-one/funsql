@@ -51,7 +51,7 @@ object Nodes {
     val data: Try[Date] = Try(sdf.parse(value))
   }
 
-  case class Identifier(value: String) extends Exp
+  case class Identifier(value: String, prefix: Option[String]=None) extends Exp
 
   case class Function(name: Identifier, exp: Seq[Exp]) extends Exp
 
@@ -85,7 +85,7 @@ object Nodes {
 
   case class InClause(lhs: Exp, rhs: Seq[Exp]) extends Predicate
 
-  case class SubQuery(lhs: Exp, rhs: Sql.BasicSelect) extends Predicate
+  case class SubQuery(lhs: Exp, rhs: Sql.SelectExpression) extends Predicate
 
   case class Table(name: String, alias: Option[String]=None) extends Relation with Aliasable
 
@@ -96,12 +96,12 @@ object Nodes {
   case class JoinedRelation(relation: Relation, join: Join) extends Relation { val alias: Option[String]=None }
 
   object Sql {
-    case class BasicSelect(columns: Seq[Nodes.Projection], table: Nodes.Relation,
-                           where: Option[Predicate], groupBy: Seq[Nodes.Exp]) extends Exp
+    case class SelectExpression(columns: Seq[Nodes.Projection], relation: Nodes.Relation,
+                                where: Option[Predicate], groupBy: Seq[Nodes.Exp]) extends Exp
 
-    case class SelectRelation(select: BasicSelect, alias: Option[String]) extends Relation
+    case class SimpleSelectRelation(select: SelectExpression, alias: Option[String]) extends Relation
 
-    case class Select(select: BasicSelect, limit: Option[IntegerLiteral]) extends Node
+    case class Select(select: SelectExpression, limit: Option[IntegerLiteral]) extends Node
   }
 
 }

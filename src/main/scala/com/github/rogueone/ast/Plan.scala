@@ -4,25 +4,37 @@ import com.github.rogueone.ast.Nodes.Predicate
 import com.github.rogueone.utils.Utils
 
 
-sealed abstract class Plan(next: Option[Plan])
+sealed abstract class Plan(parent: Seq[Plan])
 
 object Plan {
 
-  case class Relation(id: String)
+  case class Spool(name: String)
 
-  case class LoadTable(tableName: String, projection: Seq[Nodes.Exp], next: Option[Plan]) extends Plan(next) {
-    val relationId: Relation = Relation(Utils.uuid)
+  case class LoadTable(tableName: String, alias: String, projection: Seq[Nodes.Column], parent: Seq[Plan])
+    extends Plan(parent) {
+    val relationId: Spool = Spool(alias)
   }
 
-  case class Filter(relation: Relation, predicate: Predicate, next: Option[Plan]) extends Plan(next)
+  case class Filter(relation: Spool, predicate: Predicate, parent: Seq[Plan]) extends Plan(parent)
 
-  case class Join(left: Relation, right: Relation, conditions: Predicate, next: Option[Plan]) extends Plan(next) {
-    val relationId: Relation = Relation(Utils.uuid)
-  }
+  case class InnerJoinSpool(left: Spool, right: Spool, predicate: Option[Predicate], parent: Seq[Plan])
+    extends Plan(parent) { val relationId: Spool = Spool(Utils.uuid) }
 
-  case class GroupBy(relation: Relation, groupFields: Seq[Nodes.Exp], aggFields: Seq[Nodes.Exp],
-                     next: Option[Plan]) extends Plan(next)
+  case class LeftJoinSpool(left: Spool, right: Spool, predicate: Predicate, parent: Seq[Plan])
+    extends Plan(parent) { val relationId: Spool = Spool(Utils.uuid) }
 
-  case class Fetch(relation: Relation, limit: Option[Long], next: Option[Plan]) extends Plan(next)
+  case class RightJoinSpool(left: Spool, right: Spool, predicate: Predicate, parent: Seq[Plan])
+    extends Plan(parent) { val relationId: Spool = Spool(Utils.uuid) }
+
+  case class FullJoinSpool(left: Spool, right: Spool, predicate: Predicate, parent: Seq[Plan])
+    extends Plan(parent) { val relationId: Spool = Spool(Utils.uuid) }
+
+  case class CrossJoin(left: Spool, right: Spool, parent: Seq[Plan])
+    extends Plan(parent) { val relationId: Spool = Spool(Utils.uuid) }
+
+  case class GroupBy(relation: Spool, groupFields: Seq[Nodes.Exp], aggFields: Seq[Nodes.Exp],
+                     parent: Seq[Plan]) extends Plan(parent)
+
+  case class Fetch(relation: Spool, limit: Option[Long], parent: Seq[Plan]) extends Plan(parent)
 
 }

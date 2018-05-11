@@ -19,13 +19,15 @@ object Primitives {
   val whitespace: P[Unit] = P { CharIn(" \n\t") }
   val star: P[Nodes.Star.type] = P { "*" }.map(_ => Nodes.Star)
 
-  def identifier: P[Nodes.Identifier] = {
+  def protoIdentifier: P[String] = {
     P(((Primitives.alphabet | Primitives.underscore) ~ (alphabet | Primitives.number |
       Primitives.underscore).rep ~ !"(").!
       .opaque("<identifier>"))
       .filter(x => !Keyword.keywords.map(_.word.toLowerCase).contains(x.toLowerCase))
-      .map(Nodes.Identifier)
   }
+
+  def identifier: P[Identifier] = P((protoIdentifier ~ ".").? ~ protoIdentifier)
+    .map({case (x,y) => Nodes.Identifier(y,x)})
 
   def function: P[Nodes.Function] = {
     P (((Primitives.alphabet | Primitives.underscore) ~ (alphabet | Primitives.number |
@@ -47,7 +49,7 @@ object Primitives {
     import fastparse.noApi._
     ((identifier | ("(" ~ Queries.basicSelect ~/ ")")) ~ alias).map({
       case (x: Nodes.Identifier, y: Option[String]) => Nodes.Table(x.value, y)
-      case (x: Sql.BasicSelect, y: Option[String]) => Sql.SelectRelation(x, y)
+      case (x: Sql.SelectExpression, y: Option[String]) => Sql.SimpleSelectRelation(x, y)
       case _ => ???
     })
   }
