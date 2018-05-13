@@ -8,9 +8,11 @@ import com.github.rogueone.parser.Parser.White._
 
 object Queries {
 
-  def basicSelect: P[Sql.SelectExpression] = P(Keyword.Select.parser ~ (Primitives.column | Primitives.star).rep(min=1, sep = ",") ~
+  def basicSelect: P[Sql.SelectExpression] = P(Keyword.Select.parser ~
+    (Primitives.column | Primitives.star).rep(min=1, sep = ",") ~
     Keyword.From.parser ~ Primitives.relation ~ joinCond.rep.map(_.toList) ~ (Keyword.Where.parser
-    ~ PredicateParser.predicateOnly).? ~ (Keyword.Group.parser ~ Keyword.By.parser ~ Parser.expression.rep(min=1, sep=",")).?)
+    ~ PredicateParser.predicateOnly).? ~
+    (Keyword.Group.parser ~ Keyword.By.parser ~ Parser.expression.rep(min=1, sep=",")).?)
     .map({
       case (columns: Seq[Nodes.Projection @unchecked], tableName, Nil ,predicate, groupBy) =>
           Sql.SelectExpression(columns, tableName, predicate, groupBy.getOrElse(Nil))

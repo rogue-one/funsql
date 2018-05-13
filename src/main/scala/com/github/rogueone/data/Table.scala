@@ -2,11 +2,12 @@ package com.github.rogueone.data
 
 
 /**
-  *
+  * @param name
   * @param fields
   * @param data
   */
-class Table(val fields: Seq[Column],
+class Table(val name: String,
+            val fields: Seq[Column],
             val data: Array[Array[DataValue]]) {
 
   /**
