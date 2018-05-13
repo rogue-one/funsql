@@ -13,12 +13,12 @@ class QueriesSpec extends TestSpec {
     Queries.basicSelect.parse(sql).get.value must be(
       Sql.SelectExpression(
         Seq(
-          Nodes.Column(Nodes.Identifier("col1")),
-          Nodes.Column(Nodes.Identifier("col3")),
-          Nodes.Column(Nodes.IntegerLiteral("10")),
-          Nodes.Column(Nodes.StringLiteral("tango"))
+          Nodes.ColumnNode(Nodes.Identifier("col1")),
+          Nodes.ColumnNode(Nodes.Identifier("col3")),
+          Nodes.ColumnNode(Nodes.IntegerLiteral("10")),
+          Nodes.ColumnNode(Nodes.StringLiteral("tango"))
         ),
-        Nodes.Table("table_name", None),
+        Nodes.TableNode("table_name", None),
         Some(
           Nodes.AndCond(
             Nodes.Eq(Nodes.Identifier("col4"), Nodes.Identifier("col4")),
@@ -38,10 +38,10 @@ class QueriesSpec extends TestSpec {
       Sql.Select(
         Sql.SelectExpression(
           Seq(
-            Nodes.Column(Nodes.Identifier("col1")),
-            Nodes.Column(Nodes.Function(Nodes.Identifier("max"), ArrayBuffer(Nodes.Identifier("col3"))), Some("test1"))
+            Nodes.ColumnNode(Nodes.Identifier("col1")),
+            Nodes.ColumnNode(Nodes.Function(Nodes.Identifier("max"), ArrayBuffer(Nodes.Identifier("col3"))), Some("test1"))
           ),
-          Nodes.Table("table_name", Some("t0")),
+          Nodes.TableNode("table_name", Some("t0")),
           Some(Nodes.Eq(Nodes.Identifier("col4"), Nodes.Identifier("col4"))),
           Seq(Nodes.Identifier("col1"))
         ),
@@ -55,16 +55,16 @@ class QueriesSpec extends TestSpec {
     Queries.basicSelect.parse(sql).get.value must be {
       Sql.SelectExpression(
         Seq(
-          Nodes.Column(Nodes.Identifier("col1")),
-          Nodes.Column(Nodes.Function(Nodes.Identifier("max"), Seq(Nodes.Identifier("col3"))))
+          Nodes.ColumnNode(Nodes.Identifier("col1")),
+          Nodes.ColumnNode(Nodes.Function(Nodes.Identifier("max"), Seq(Nodes.Identifier("col3"))))
         ),
-        Nodes.Table("table_name", None),
+        Nodes.TableNode("table_name", None),
         Some(
           Nodes.SubQuery(
             Nodes.Identifier("col4"),
             Sql.SelectExpression(
-              Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Column(Nodes.Identifier("col2"))),
-              Nodes.Table("table", None), None, Nil)
+              Seq(Nodes.ColumnNode(Nodes.Identifier("col1")), Nodes.ColumnNode(Nodes.Identifier("col2"))),
+              Nodes.TableNode("table", None), None, Nil)
           )
         ),
         Seq(Nodes.Identifier("col1"))
@@ -77,8 +77,8 @@ class QueriesSpec extends TestSpec {
     Queries.select.parse(sql).get.value must be (
       Sql.Select(
         Sql.SelectExpression(
-          Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Column(Nodes.Identifier("col2"))),
-          Sql.SimpleSelectRelation(Sql.SelectExpression(Seq(Nodes.Star), Nodes.Table("table1"), None, Nil), None),
+          Seq(Nodes.ColumnNode(Nodes.Identifier("col1")), Nodes.ColumnNode(Nodes.Identifier("col2"))),
+          Sql.SimpleSelectRelation(Sql.SelectExpression(Seq(Nodes.Star), Nodes.TableNode("table1"), None, Nil), None),
           Some(Nodes.Eq(Nodes.Identifier("col4"), Nodes.Identifier("col5"))), Nil
         ), None
       )
@@ -89,15 +89,15 @@ class QueriesSpec extends TestSpec {
     Queries.basicSelect.parse("SELECT col1 as x1,* FROM table_name").get.value must be(
       Sql.SelectExpression(
         Seq(
-          Nodes.Column(Nodes.Identifier("col1"), Some("x1")),
+          Nodes.ColumnNode(Nodes.Identifier("col1"), Some("x1")),
           Nodes.Star
         ),
-        Nodes.Table("table_name", None), None, Nil)
+        Nodes.TableNode("table_name", None), None, Nil)
     )
     Queries.basicSelect.parse("SELECT col1,* FROM table_name").get.value must be (
       Sql.SelectExpression(
-        Seq(Nodes.Column(Nodes.Identifier("col1")), Nodes.Star),
-        Nodes.Table("table_name", None),
+        Seq(Nodes.ColumnNode(Nodes.Identifier("col1")), Nodes.Star),
+        Nodes.TableNode("table_name", None),
         None, Nil)
     )
   }
@@ -107,14 +107,14 @@ class QueriesSpec extends TestSpec {
     Queries.basicSelect.parse(sql).get.value must be (
       Sql.SelectExpression(
         Seq(
-          Nodes.Column(Identifier("col1", Some("t1"))),
-          Nodes.Column(Nodes.Identifier("col2", Some("t1")), Some("x1")),
-          Nodes.Column(Identifier("col3"))
+          Nodes.ColumnNode(Identifier("col1", Some("t1"))),
+          Nodes.ColumnNode(Nodes.Identifier("col2", Some("t1")), Some("x1")),
+          Nodes.ColumnNode(Identifier("col3"))
         ),
         Nodes.JoinedRelation(
-          Nodes.Table("table1",Some("t1")),
+          Nodes.TableNode("table1",Some("t1")),
           InnerJoin(
-            Nodes.Table("table2",Some("t2")),
+            Nodes.TableNode("table2",Some("t2")),
             Some(Nodes.Eq(Identifier("col1", Some("t1")), Nodes.Identifier("col2", Some("t2"))))
           )
         ),
@@ -133,19 +133,19 @@ class QueriesSpec extends TestSpec {
     Queries.basicSelect.parse(sql).get.value must be (
       Sql.SelectExpression(
         Seq(
-          Nodes.Column(Nodes.Identifier("col1"),None),
-          Nodes.Column(Nodes.Identifier("col2"),Some("x1")),
-          Nodes.Column(Nodes.Identifier("col3"),None)
+          Nodes.ColumnNode(Nodes.Identifier("col1"),None),
+          Nodes.ColumnNode(Nodes.Identifier("col2"),Some("x1")),
+          Nodes.ColumnNode(Nodes.Identifier("col3"),None)
         ),
         Nodes.JoinedRelation(
           Nodes.JoinedRelation(
             Nodes.JoinedRelation(
-              Nodes.Table("table1", None),
-              InnerJoin(Nodes.Table("table2",None), Some(Nodes.Eq(Identifier("col1"), Nodes.Identifier("col2"))))
+              Nodes.TableNode("table1", None),
+              InnerJoin(Nodes.TableNode("table2",None), Some(Nodes.Eq(Identifier("col1"), Nodes.Identifier("col2"))))
             ),
-            LeftJoin(Nodes.Table("table3",None), Nodes.Eq(Identifier("col3"),Identifier("col4")))
+            LeftJoin(Nodes.TableNode("table3",None), Nodes.Eq(Identifier("col3"),Identifier("col4")))
           ),
-          FullJoin(Nodes.Table("table4", None), Nodes.Eq(Identifier("col5"), Identifier("col6")))
+          FullJoin(Nodes.TableNode("table4", None), Nodes.Eq(Identifier("col5"), Identifier("col6")))
         ),
         Some(Nodes.Eq(Identifier("col3"), Nodes.DateLiteral("2017-08-01"))),
         List()

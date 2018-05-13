@@ -9,19 +9,50 @@ object DataValue {
 
   object NullValue extends DataValue
 
-  sealed abstract class BaseDataValue[+T](value: T) extends DataValue
+  sealed abstract class BaseDataValue extends DataValue {
+    type T
+    type This <: BaseDataValue
+    val value: T
+    def map(f: (T => T)): This = { this.create(f.apply(value)) }
+    def flatMap[P <: BaseDataValue](f: (T => P)): BaseDataValue = { f.apply(value) }
+    protected def create(input: T): This
+  }
 
-  class IntValue(value: Int) extends BaseDataValue[Int](value)
+  case class IntValue(value: Int) extends BaseDataValue {
+    type T = Int
+    type This = IntValue
+    override protected def create(input: Int): IntValue = IntValue(input)
+  }
 
-  class BigIntValue(value: Long) extends BaseDataValue[Long](value)
+  case class BigIntValue(value: Long) extends BaseDataValue {
+    type T = Long
+    type This = BigIntValue
+    override protected def create(input: Long): BigIntValue = BigIntValue(input)
+  }
 
-  class StringValue(value: String) extends BaseDataValue[String](value)
+  case class StringValue(value: String) extends BaseDataValue {
+    type T = String
+    type This = StringValue
+    override protected def create(input: String): StringValue = StringValue(input)
+  }
 
-  class DecimalValue(value: Double) extends BaseDataValue[Double](value)
+  case class DecimalValue(value: Double) extends BaseDataValue {
+    type T = Double
+    type This = DecimalValue
+    override protected def create(input: Double): DecimalValue = DecimalValue(input)
+  }
 
-  class DateValue(value: Date) extends BaseDataValue[Date](value)
+  case class DateValue(value: Date) extends BaseDataValue {
+    type T = Date
+    type This = DateValue
+    override protected def create(input: Date): DateValue = DateValue(input)
+  }
 
-  class TimestampValue(value: Date) extends BaseDataValue[Date](value)
+  case class TimestampValue(value: Date) extends BaseDataValue {
+    type T = Date
+    type This = TimestampValue
+    override protected def create(input: Date): TimestampValue = TimestampValue(input)
+  }
 
 }
 

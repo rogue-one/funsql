@@ -18,7 +18,7 @@ object Nodes {
 
   sealed trait Projection extends Aliasable
 
-  sealed trait Exp extends Node
+  sealed trait  Exp extends Node
 
   sealed trait Literal extends Exp
 
@@ -87,9 +87,9 @@ object Nodes {
 
   case class SubQuery(lhs: Exp, rhs: Sql.SelectExpression) extends Predicate
 
-  case class Table(name: String, alias: Option[String]=None) extends Relation with Aliasable
+  case class TableNode(name: String, alias: Option[String]=None) extends Relation with Aliasable
 
-  case class Column(exp: Exp, alias: Option[String]=None) extends Projection
+  case class ColumnNode(exp: Exp, alias: Option[String]=None) extends Projection
 
   case object Star extends Projection { val alias: Option[String] = None }
 

@@ -2,20 +2,20 @@ package com.github.rogueone.data
 
 import java.util.Date
 
-sealed class DataType[+T](val name: String)
+sealed class DataType(val name: String) { type T }
 
 object DataType {
 
-  object IntType extends DataType[Int]("int")
+  object IntType extends DataType("int") { type T = Int }
 
-  object BigIntType extends DataType[Long]("bigint")
+  object BigIntType extends DataType("bigint") { type T = Long }
 
-  object DecimalType extends DataType[Double]("decimal")
+  object DecimalType extends DataType("decimal") { type T = Double }
 
-  object StringType extends DataType[String]("string")
+  object StringType extends DataType("string") { type T = String }
 
-  object DateType extends DataType[Date]("date")
+  object DateType extends DataType("date") { type T = Date }
 
-  object TimestampType extends DataType[Date]("timestamp")
+  object TimestampType extends DataType("timestamp") { type T = Date }
 
 }

@@ -40,7 +40,7 @@ object Primitives {
 
   def column: P[Nodes.Aliasable] = P((Parser.expression ~ whitespace.rep ~ alias) | star)
     .map({
-      case (exp: Exp, alias: Option[String] @unchecked) => Nodes.Column(exp, alias)
+      case (exp: Exp, alias: Option[String] @unchecked) => Nodes.ColumnNode(exp, alias)
       case Nodes.Star => Nodes.Star
     })
 
@@ -48,7 +48,7 @@ object Primitives {
     import Parser.White._
     import fastparse.noApi._
     ((identifier | ("(" ~ Queries.basicSelect ~/ ")")) ~ alias).map({
-      case (x: Nodes.Identifier, y: Option[String]) => Nodes.Table(x.value, y)
+      case (x: Nodes.Identifier, y: Option[String]) => Nodes.TableNode(x.value, y)
       case (x: Sql.SelectExpression, y: Option[String]) => Sql.SimpleSelectRelation(x, y)
       case _ => ???
     })

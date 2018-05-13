@@ -7,11 +7,11 @@ trait RowEvaluator {
 
   self: RelationSelector =>
 
-  def evaluate(exp: Nodes.Exp, row: Array[DataValue]) = {
+//  def evaluate(exp: Nodes.Exp, row: Array[DataValue]): DataValue = {
 //    exp match {
-//      case
+//      case Nodes.Identifier(x, _) =>
 //    }
-  }
+//  }
 
 
 
