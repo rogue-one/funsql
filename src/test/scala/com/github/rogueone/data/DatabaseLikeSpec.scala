@@ -11,11 +11,13 @@ class DatabaseLikeSpec extends TestSpec {
       Array(DataValue.StringValue("foo"), DataValue.IntValue(10)),
       Array(DataValue.StringValue("bar"), DataValue.IntValue(20))
     )))
-    db.saveTable(new Table("test_table_2", Seq(Column("col1", DataType.StringType),
+    db.saveTable(
+      new Table("test_table_2", Seq(Column("col1", DataType.StringType),
       Column("col2", DataType.IntType)), Array(
       Array(DataValue.StringValue("hello"), DataValue.IntValue(10)),
       Array(DataValue.StringValue("world"), DataValue.IntValue(20))
-    )))
+      ))
+    )
     db.listTables must be (Seq("test_table_1", "test_table_2"))
     db.dropTable("test_table_1")
     db.listTables must be (Seq("test_table_2"))

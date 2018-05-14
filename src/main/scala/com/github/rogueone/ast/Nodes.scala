@@ -12,7 +12,19 @@ object Nodes {
 
   sealed trait Node
 
-  sealed trait Aliasable extends Node { def alias: Option[String] }
+  sealed trait Aliasable extends Node {
+
+    protected var alias: Option[String]
+
+    /**
+      * set alias if not already sey
+      * @param name
+      */
+    def setAliasName(name: String): Unit = alias match { case Some(_) => () case None => alias = Some(name) }
+
+    def getAliasName: Option[String] = alias
+
+  }
 
   sealed trait Relation extends Aliasable
 
@@ -85,23 +97,44 @@ object Nodes {
 
   case class InClause(lhs: Exp, rhs: Seq[Exp]) extends Predicate
 
-  case class SubQuery(lhs: Exp, rhs: Sql.SelectExpression) extends Predicate
+  case class SqlInClause(lhs: Exp, rhs: Sql.SelectExpression) extends Predicate
 
-  case class TableNode(name: String, alias: Option[String]=None) extends Relation with Aliasable
+  case class TableNode(name: String, protected var alias: Option[String]=None) extends Relation with Aliasable
 
-  case class ColumnNode(exp: Exp, alias: Option[String]=None) extends Projection
+  case class ColumnNode(exp: Exp, var alias: Option[String]=None) extends Projection
 
-  case object Star extends Projection { val alias: Option[String] = None }
+  case object Star extends Projection { var alias: Option[String] = None }
 
-  case class JoinedRelation(relation: Relation, join: Join) extends Relation { val alias: Option[String]=None }
+  case class JoinedRelation(relation: Relation, join: Join) extends Relation { var alias: Option[String]=None }
 
   object Sql {
+
+    sealed trait Query
+
+    /**
+      *
+      * @param columns
+      * @param relation
+      * @param where
+      * @param groupBy
+      */
     case class SelectExpression(columns: Seq[Nodes.Projection], relation: Nodes.Relation,
                                 where: Option[Predicate], groupBy: Seq[Nodes.Exp]) extends Exp
 
-    case class SimpleSelectRelation(select: SelectExpression, alias: Option[String]) extends Relation
+    /**
+      * A paranthesesed query with alias
+      * @param select
+      * @param alias
+      */
+    case class SubQuery(select: SelectExpression, protected var alias: Option[String]) extends Relation with Query
 
-    case class Select(select: SelectExpression, limit: Option[IntegerLiteral]) extends Node
+    /**
+      * Select Query
+      * @param select
+      * @param limit
+      */
+    case class Select(select: SelectExpression, limit: Option[IntegerLiteral]) extends Node with Query
+
   }
 
 }

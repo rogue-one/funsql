@@ -60,7 +60,7 @@ class QueriesSpec extends TestSpec {
         ),
         Nodes.TableNode("table_name", None),
         Some(
-          Nodes.SubQuery(
+          Nodes.SqlInClause(
             Nodes.Identifier("col4"),
             Sql.SelectExpression(
               Seq(Nodes.ColumnNode(Nodes.Identifier("col1")), Nodes.ColumnNode(Nodes.Identifier("col2"))),
@@ -73,12 +73,15 @@ class QueriesSpec extends TestSpec {
   }
 
   it must "parse query with subquery" in {
-    val sql = "SELECT col1,col2 FROM (SELECT * FROM table1) WHERE col4 = col5"
+    val sql = "SELECT col1,col2 FROM (SELECT * FROM table1) t0 WHERE col4 = col5"
     Queries.select.parse(sql).get.value must be (
       Sql.Select(
         Sql.SelectExpression(
           Seq(Nodes.ColumnNode(Nodes.Identifier("col1")), Nodes.ColumnNode(Nodes.Identifier("col2"))),
-          Sql.SimpleSelectRelation(Sql.SelectExpression(Seq(Nodes.Star), Nodes.TableNode("table1"), None, Nil), None),
+          Sql.SubQuery(
+            Sql.SelectExpression(Seq(Nodes.Star), Nodes.TableNode("table1"), None, Nil),
+            Some("t0")
+          ),
           Some(Nodes.Eq(Nodes.Identifier("col4"), Nodes.Identifier("col5"))), Nil
         ), None
       )

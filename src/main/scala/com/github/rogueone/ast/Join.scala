@@ -5,7 +5,7 @@ import com.github.rogueone.ast.Nodes.{Predicate, Relation}
 /**
   * base abstract join type
   */
-sealed trait Join
+sealed trait Join { val relation: Relation }
 
 /**
   * Inner Join

@@ -24,8 +24,10 @@ object Queries {
         )
     })
 
-  def selectRelation: P[Sql.SimpleSelectRelation] = P("(" ~ basicSelect ~ ")" ~ Primitives.alias)
-      .map({ case (x: Sql.SelectExpression, y: Option[String]) => Sql.SimpleSelectRelation(x, y)})
+  def selectRelation: P[Sql.SubQuery] = P("(" ~ basicSelect ~/ ")" ~ Primitives.alias)
+      .filter({case (_: Sql.SelectExpression, Some(_)) => true case _ => false })
+      .map({ case (x: Sql.SelectExpression, Some(y)) => Sql.SubQuery(x, Some(y)) case _ => ???})
+      .opaque("all derived table must have an alias")
 
   def select: P[Select] = P(basicSelect ~ (Keyword.Limit.parser ~ LiteralParser.numberLiteral).?)
     .map({ case (x,y) => Select(x, y)})

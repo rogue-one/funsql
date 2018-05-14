@@ -47,10 +47,10 @@ object Primitives {
   def relation: P[Nodes.Relation] = {
     import Parser.White._
     import fastparse.noApi._
-    ((identifier | ("(" ~ Queries.basicSelect ~/ ")")) ~ alias).map({
-      case (x: Nodes.Identifier, y: Option[String]) => Nodes.TableNode(x.value, y)
-      case (x: Sql.SelectExpression, y: Option[String]) => Sql.SimpleSelectRelation(x, y)
-      case _ => ???
+    ((identifier ~ alias) | Queries.selectRelation).map({
+      case (x: Nodes.Identifier, y: Option[String @unchecked]) => Nodes.TableNode(x.value, y)
+      case x: Sql.SubQuery => x
+      case _ =>  ???
     })
   }
 
