@@ -18,6 +18,9 @@ class AssignRelationAliasSpec extends TestSpec {
     }
     val ast = Queries.select.parse(sql).get.value
     queryWriter.rewrite(ast)
+    ast.select.relation.asInstanceOf[Nodes.JoinedRelation].alias must be (Some("test"))
+    ast.select.relation.asInstanceOf[Nodes.JoinedRelation]
+      .relation.asInstanceOf[Nodes.JoinedRelation].alias must be (Some("test"))
     ast must be (
       Sql.Select(
         Sql.SelectExpression(

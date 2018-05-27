@@ -1,10 +1,11 @@
 package com.github.rogueone.data
 
-import com.github.rogueone.utils.{DBException, TableException}
+import com.github.rogueone.utils.{DBException, SemanticException, TableException}
+import scala.collection.mutable
 
 trait DatabaseLike {
 
-  private var tables: List[Table] = List()
+  protected val tables: mutable.MutableList[Table] = mutable.MutableList[Table]()
 
   /**
     * save table
@@ -14,7 +15,7 @@ trait DatabaseLike {
     */
   def saveTable(tableData: Table, overwrite: Boolean=false): Unit = {
     if (overwrite | !tables.map(_.name).contains(tableData.name))
-      tables = tables :+ tableData
+      tables += tableData
     else
       throw new DBException(s"table ${tableData.name} already exists")
   }
@@ -27,7 +28,7 @@ trait DatabaseLike {
   def getTable(name: String): Table = {
     tables.find(_.name == name) match {
       case Some(x) => x
-      case None => throw new TableException(s"table $name doesn't exists")
+      case None => throw new SemanticException(s"table $name doesn't exists")
     }
   }
 
@@ -43,8 +44,8 @@ trait DatabaseLike {
     * @param name
     */
   def dropTable(name: String): Unit = {
-    tables.find(_.name == name) match {
-      case Some(_) => tables = tables.filterNot(_.name == name)
+    tables.zipWithIndex.find({case (x, _) => x.name == name}) match {
+      case Some((_, index)) => tables.drop(index)
       case None => new TableException(s"table $name not found")
     }
   }

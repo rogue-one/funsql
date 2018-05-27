@@ -2,7 +2,6 @@ package com.github.rogueone.ast
 
 import java.text.SimpleDateFormat
 import java.util.Date
-
 import scala.util.{Success, Try}
 
 /**
@@ -63,37 +62,41 @@ object Nodes {
     val data: Try[Date] = Try(sdf.parse(value))
   }
 
-  case class Identifier(value: String, prefix: Option[String]=None) extends Exp
+  case class Identifier(value: String, var prefix: Option[String]=None) extends Exp
 
   case class Function(name: Identifier, exp: Seq[Exp]) extends Exp
 
-  case class Add(lhs: Exp, rhs: Exp) extends Exp
+  sealed trait BinaryOperator extends Exp { val lhs: Exp; val rhs: Exp }
 
-  case class Sub(lhs: Exp, rhs: Exp) extends Exp
+  sealed trait UnaryOperator extends Exp { val arg: Exp }
 
-  case class Mul(lhs: Exp, rhs: Exp) extends Exp
+  case class Add(lhs: Exp, rhs: Exp) extends BinaryOperator
 
-  case class Div(lhs: Exp, rhs: Exp) extends Exp
+  case class Sub(lhs: Exp, rhs: Exp) extends BinaryOperator
+
+  case class Mul(lhs: Exp, rhs: Exp) extends BinaryOperator
+
+  case class Div(lhs: Exp, rhs: Exp) extends BinaryOperator
 
   trait Predicate extends Exp
 
-  case class Eq(lhs: Exp, rhs: Exp) extends Predicate
+  case class Eq(lhs: Exp, rhs: Exp) extends Predicate with BinaryOperator
 
-  case class NtEq(lhs: Exp, rhs: Exp) extends Predicate
+  case class NtEq(lhs: Exp, rhs: Exp) extends Predicate with BinaryOperator
 
-  case class Lt(lhs: Exp, rhs: Exp) extends Predicate
+  case class Lt(lhs: Exp, rhs: Exp) extends Predicate with BinaryOperator
 
-  case class Gt(lhs: Exp, rhs: Exp) extends Predicate
+  case class Gt(lhs: Exp, rhs: Exp) extends Predicate with BinaryOperator
 
-  case class GtEq(lhs: Exp, rhs: Exp) extends Predicate
+  case class GtEq(lhs: Exp, rhs: Exp) extends Predicate with BinaryOperator
 
-  case class LtEq(lhs: Exp, rhs: Exp) extends Predicate
+  case class LtEq(lhs: Exp, rhs: Exp) extends Predicate with BinaryOperator
 
-  case class OrCond(lhs: Predicate, rhs: Predicate) extends Predicate
+  case class OrCond(lhs: Predicate, rhs: Predicate) extends Predicate with BinaryOperator
 
-  case class AndCond(lhs: Predicate, rhs: Predicate) extends Predicate
+  case class AndCond(lhs: Predicate, rhs: Predicate) extends Predicate with BinaryOperator
 
-  case class NotCond(exp: Predicate) extends Predicate
+  case class NotCond(arg: Predicate) extends Predicate with UnaryOperator
 
   case class InClause(lhs: Exp, rhs: Seq[Exp]) extends Predicate
 
@@ -112,7 +115,7 @@ object Nodes {
     sealed trait Query
 
     /**
-      *
+      * The Basic version is not a [[Relation]] << insert reason here >>
       * @param columns
       * @param relation
       * @param where

@@ -1,14 +1,15 @@
-package com.github.rogueone.ast
+package com.github.rogueone.ast.semantic
 
-import com.github.rogueone.ast.Nodes.{Relation, Sql}
+import com.github.rogueone.ast.Nodes
+import com.github.rogueone.ast.Nodes.Sql
 
-class QueryAnalyzer(query: Sql.Query) {
+trait TableAnalyzer {
 
   /**
     * parse query to list all tables in a query
     * @return
     */
-  def getTables: List[Nodes.TableNode] = {
+  def getTables(query: Sql.Query): List[Nodes.TableNode] = {
     def parseQuery(relation: Nodes.Relation, tables: List[Nodes.TableNode]): List[Nodes.TableNode] = {
       relation match {
         case x: Sql.SubQuery => parseQuery(x.select.relation, tables) ++ tables
@@ -23,7 +24,5 @@ class QueryAnalyzer(query: Sql.Query) {
       case _ => Nil
     }
   }
-
-
 
 }

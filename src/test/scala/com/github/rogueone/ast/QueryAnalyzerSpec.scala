@@ -2,6 +2,7 @@ package com.github.rogueone.ast
 
 import com.github.rogueone.TestSpec
 import com.github.rogueone.ast.Nodes.Sql
+import com.github.rogueone.ast.semantic.QueryAnalyzer
 import com.github.rogueone.parser.Queries
 
 class QueryAnalyzerSpec extends TestSpec {
@@ -14,10 +15,9 @@ class QueryAnalyzerSpec extends TestSpec {
         |FULL OUTER JOIN table4 ON col5 = col6
         |WHERE col3 = DATE '2017-08-01'""".stripMargin
     val query: Sql.Select = Queries.select.parse(sql).get.value
-    val analyzer = new QueryAnalyzer(query)
-    analyzer.getTables must contain only (Nodes.TableNode("table1",None), Nodes.TableNode("table2",None),
+    QueryAnalyzer.getTables(query) must contain only (Nodes.TableNode("table1",None), Nodes.TableNode("table2",None),
       Nodes.TableNode("table3",None), Nodes.TableNode("table4",None))
-    new QueryAnalyzer(Queries.select.parse("SELECT * FROM table1").get.value).getTables must
+    QueryAnalyzer.getTables(Queries.select.parse("SELECT * FROM table1").get.value) must
       contain only (Nodes.TableNode("table1",None))
   }
 

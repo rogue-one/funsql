@@ -19,16 +19,16 @@ class AssignRelationAlias extends QueryRewriter {
         case x: Sql.SubQuery => x.setAliasName(getAliasName); parseQuery(x.select.relation)
         case x: Nodes.TableNode => x.setAliasName(getAliasName)
         case x: Nodes.JoinedRelation =>
-          x.setAliasName(getAliasName)
-          parseQuery(x.relation)
-          x.join.relation.setAliasName(getAliasName)
+          x.setAliasName(getAliasName); parseQuery(x.relation); x.join.relation.setAliasName(getAliasName)
           parseQuery(x.join.relation)
       }
     }
     query match {
       case x: Sql.Select => parseQuery(x.select.relation)
       case x: Sql.SubQuery => parseQuery(x.select.relation)
-      case _ =>
+      case _ => ()
     }
   }
 }
+
+object AssignRelationAlias extends AssignRelationAlias

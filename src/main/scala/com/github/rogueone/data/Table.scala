@@ -1,5 +1,7 @@
 package com.github.rogueone.data
 
+import com.github.rogueone.utils.SemanticException
+
 
 /**
   * @param name
@@ -15,8 +17,11 @@ class Table(val name: String,
     * @param columnName optional column
     * @return
     */
-  def getColumnByName(columnName: String): Option[Column] =
-    fields.find({ case Column(`columnName`, _) => true case _ => false })
+  def getColumnByName(columnName: String): Column =
+    fields.find({ case Column(`columnName`, _) => true case _ => false }) match {
+      case Some(x) => x
+      case None => throw new SemanticException(s"column $columnName not found in table $name")
+    }
 
 
 }

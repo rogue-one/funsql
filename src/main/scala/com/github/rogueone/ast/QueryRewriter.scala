@@ -4,10 +4,16 @@ import com.github.rogueone.ast.Nodes.Sql
 
 trait QueryRewriter {
 
-  self: QueryRewriter =>
-
   def rewrite(query: Sql.Query): Sql.Query
 
-  def andThen(that: QueryRewriter): QueryRewriter = { (query: Sql.Query) => that.rewrite(self.rewrite(query)) }
+  def andThen(that: QueryRewriter): QueryRewriter = {
+    (query: Sql.Query) => that.rewrite(this.rewrite(query))
+  }
+
+}
+
+object QueryRewriter {
+
+  val queryReWriters: QueryRewriter = AssignRelationAlias
 
 }
