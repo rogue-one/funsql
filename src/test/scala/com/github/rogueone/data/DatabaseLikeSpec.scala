@@ -20,7 +20,7 @@ class DatabaseLikeSpec extends TestSpec {
     )
     db.listTables must be (Seq("test_table_1", "test_table_2"))
     db.dropTable("test_table_1")
-    db.listTables must be (Seq("test_table_2"))
+    db.listTables must contain only ("test_table_2")
     val table = db.getTable("test_table_2")
     table.name must be ("test_table_2")
     table.fields.map(_.name) must be (Seq("col1", "col2"))

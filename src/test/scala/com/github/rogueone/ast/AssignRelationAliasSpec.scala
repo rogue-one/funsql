@@ -2,6 +2,8 @@ package com.github.rogueone.ast
 
 import com.github.rogueone.TestSpec
 import com.github.rogueone.ast.Nodes.Sql
+import com.github.rogueone.ast.rewriter.AssignRelationAlias
+import com.github.rogueone.data.DatabaseLike
 import com.github.rogueone.parser.Queries
 
 class AssignRelationAliasSpec extends TestSpec {
@@ -17,13 +19,13 @@ class AssignRelationAliasSpec extends TestSpec {
       override protected def getAliasName: String = "test"
     }
     val ast = Queries.select.parse(sql).get.value
-    queryWriter.rewrite(ast)
+    queryWriter.rewrite(ast, new DatabaseLike {})
     ast.select.relation.asInstanceOf[Nodes.JoinedRelation].alias must be (Some("test"))
     ast.select.relation.asInstanceOf[Nodes.JoinedRelation]
       .relation.asInstanceOf[Nodes.JoinedRelation].alias must be (Some("test"))
     ast must be (
       Sql.Select(
-        Sql.SelectExpression(
+        Nodes.SelectExpression(
           Seq(
             Nodes.ColumnNode(Nodes.Identifier("col1",None),None),
             Nodes.ColumnNode(Nodes.Identifier("col2",None),Some("x1")),
@@ -40,7 +42,7 @@ class AssignRelationAliasSpec extends TestSpec {
               ),
               LeftJoin(
                 Sql.SubQuery(
-                  Sql.SelectExpression(
+                  Nodes.SelectExpression(
                     Seq(Nodes.ColumnNode(Nodes.Identifier("col10",None),None)),
                     Nodes.TableNode("table3",Some("test")),
                     None,List()

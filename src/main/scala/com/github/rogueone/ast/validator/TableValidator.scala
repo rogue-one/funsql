@@ -1,7 +1,9 @@
-package com.github.rogueone.ast.semantic
+package com.github.rogueone.ast.validator
 
 import com.github.rogueone.ast.Nodes.Sql
+import com.github.rogueone.ast.semantic.{QueryAnalyzer, SemanticAnalyzer}
 import com.github.rogueone.data.Database
+
 import scala.util.Try
 
 object TableValidator extends SemanticAnalyzer {

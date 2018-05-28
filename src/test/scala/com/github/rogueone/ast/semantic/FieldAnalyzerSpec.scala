@@ -3,10 +3,12 @@ package com.github.rogueone.ast.semantic
 import com.github.rogueone.TestSpec
 import com.github.rogueone.ast.Nodes.Sql
 import com.github.rogueone.ast.Nodes.Sql.SubQuery
+import com.github.rogueone.ast.rewriter.AssignFieldPrefix
 import com.github.rogueone.ast.{InnerJoin, Nodes}
 import com.github.rogueone.data.DataType.StringType
 import com.github.rogueone.data.{Column, DatabaseLike, Table}
 import com.github.rogueone.parser.Queries
+
 import scala.collection.mutable.ArrayBuffer
 
 class FieldAnalyzerSpec extends TestSpec {
@@ -27,17 +29,19 @@ class FieldAnalyzerSpec extends TestSpec {
          |WHERE col6 = 20 AND col5 IN (10, 20, 30)
          |GROUP BY col1, col4
          |""".stripMargin)
-    new AssignFieldPrefix(database).rewrite(select.get.value) must be (
+    new AssignFieldPrefix().rewrite(select.get.value, database) must be (
       Nodes.Sql.Select(
-        Sql.SelectExpression(
+        Nodes.SelectExpression(
           ArrayBuffer(
             Nodes.ColumnNode(Nodes.Identifier("col1", None), None),
             Nodes.ColumnNode(Nodes.Identifier("col4", None), None),
-            Nodes.ColumnNode(Nodes.Function(Nodes.Identifier("max", None), ArrayBuffer(Nodes.Identifier("col3", None))), None)
+            Nodes.ColumnNode(
+              Nodes.Function(Nodes.Identifier("max", None), ArrayBuffer(Nodes.Identifier("col3", None))), None
+            )
           ),
           Nodes.JoinedRelation(
             Sql.SubQuery(
-              Sql.SelectExpression(
+              Nodes.SelectExpression(
                 ArrayBuffer(
                   Nodes.ColumnNode(Nodes.Identifier("col1", None), None),
                   Nodes.ColumnNode(Nodes.Identifier("col2", None), None),
@@ -48,7 +52,7 @@ class FieldAnalyzerSpec extends TestSpec {
             ),
             InnerJoin(
               SubQuery(
-                Sql.SelectExpression(
+                Nodes.SelectExpression(
                   ArrayBuffer(
                     Nodes.ColumnNode(Nodes.Identifier("col4", None), None),
                     Nodes.ColumnNode(Nodes.Identifier("col5", None), None),
@@ -69,7 +73,8 @@ class FieldAnalyzerSpec extends TestSpec {
             )
           ),
           ArrayBuffer(Nodes.Identifier("col1", None), Nodes.Identifier("col4", None))
-        ), None)
+        ), None
+      )
     )
 
     //    contain only (

@@ -1,11 +1,13 @@
-package com.github.rogueone.ast.semantic
+package com.github.rogueone.ast.validator
 
 import com.github.rogueone.ast.Nodes
 import com.github.rogueone.ast.Nodes.{ColumnNode, Identifier, Sql, TableNode}
+import com.github.rogueone.ast.semantic.{QueryAnalyzer, SemanticAnalyzer}
 import com.github.rogueone.data.Database
 import com.github.rogueone.utils.SemanticException
 
 import scala.util.{Failure, Success, Try}
+
 
 class ProjectionFieldValidator extends SemanticAnalyzer {
 

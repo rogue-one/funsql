@@ -5,7 +5,7 @@ import scala.collection.mutable
 
 trait DatabaseLike {
 
-  protected val tables: mutable.MutableList[Table] = mutable.MutableList[Table]()
+  protected val tables: mutable.ListBuffer[Table] = mutable.ListBuffer[Table]()
 
   /**
     * save table
@@ -15,7 +15,7 @@ trait DatabaseLike {
     */
   def saveTable(tableData: Table, overwrite: Boolean=false): Unit = {
     if (overwrite | !tables.map(_.name).contains(tableData.name))
-      tables += tableData
+      tables.append(tableData)
     else
       throw new DBException(s"table ${tableData.name} already exists")
   }
@@ -45,7 +45,7 @@ trait DatabaseLike {
     */
   def dropTable(name: String): Unit = {
     tables.zipWithIndex.find({case (x, _) => x.name == name}) match {
-      case Some((_, index)) => tables.drop(index)
+      case Some((_, index)) => tables.remove(index)
       case None => new TableException(s"table $name not found")
     }
   }

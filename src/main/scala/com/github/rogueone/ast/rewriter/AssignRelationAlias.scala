@@ -1,11 +1,13 @@
-package com.github.rogueone.ast
+package com.github.rogueone.ast.rewriter
+
+import com.github.rogueone.ast.Nodes
 import com.github.rogueone.ast.Nodes.Sql
+import com.github.rogueone.data.DatabaseLike
 import com.github.rogueone.utils.Utils
 
 class AssignRelationAlias extends QueryRewriter {
 
-  override def rewrite(query: Sql.Query): Sql.Query = { setAlias(query); query }
-
+  override def rewrite(query: Sql.Query, database: DatabaseLike): Sql.Query = { setAlias(query); query }
 
   protected def getAliasName: String = Utils.uuid
 

@@ -1,9 +1,7 @@
 package com.github.rogueone.ast
 
-import com.github.rogueone.ast.Nodes.Sql
 
-
-class PlanBuilder(query: Sql.SelectExpression) {
+class PlanBuilder(query: Nodes.SelectExpression) {
 
   def getPlan = {
 //    query.relation match {

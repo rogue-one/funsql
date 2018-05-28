@@ -8,16 +8,16 @@ import com.github.rogueone.parser.Parser.White._
 
 object Queries {
 
-  def basicSelect: P[Sql.SelectExpression] = P(Keyword.Select.parser ~
+  def basicSelect: P[Nodes.SelectExpression] = P(Keyword.Select.parser ~
     (Primitives.column | Primitives.star).rep(min=1, sep = ",") ~
     Keyword.From.parser ~ Primitives.relation ~ joinCond.rep.map(_.toList) ~ (Keyword.Where.parser
     ~ PredicateParser.predicateOnly).? ~
     (Keyword.Group.parser ~ Keyword.By.parser ~ Parser.expression.rep(min=1, sep=",")).?)
     .map({
       case (columns: Seq[Nodes.Projection @unchecked], tableName, Nil ,predicate, groupBy) =>
-          Sql.SelectExpression(columns, tableName, predicate, groupBy.getOrElse(Nil))
+          Nodes.SelectExpression(columns, tableName, predicate, groupBy.getOrElse(Nil))
       case (columns: Seq[Nodes.Projection @unchecked], tableName, (head :: tail) ,predicate, groupBy) =>
-        Sql.SelectExpression (
+        Nodes.SelectExpression (
           columns,
           tail.foldLeft(JoinedRelation(tableName, head))({ case (acc, join) => JoinedRelation(acc, join) }),
           predicate, groupBy.getOrElse(Nil)
@@ -25,8 +25,8 @@ object Queries {
     })
 
   def selectRelation: P[Sql.SubQuery] = P("(" ~ basicSelect ~/ ")" ~ Primitives.alias)
-      .filter({case (_: Sql.SelectExpression, Some(_)) => true case _ => false })
-      .map({ case (x: Sql.SelectExpression, Some(y)) => Sql.SubQuery(x, Some(y)) case _ => ???})
+      .filter({case (_: Nodes.SelectExpression, Some(_)) => true case _ => false })
+      .map({ case (x: Nodes.SelectExpression, Some(y)) => Sql.SubQuery(x, Some(y)) case _ => ???})
       .opaque("all derived table must have an alias")
 
   def select: P[Select] = P(basicSelect ~ (Keyword.Limit.parser ~ LiteralParser.numberLiteral).?)

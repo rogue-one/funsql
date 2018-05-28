@@ -100,7 +100,7 @@ object Nodes {
 
   case class InClause(lhs: Exp, rhs: Seq[Exp]) extends Predicate
 
-  case class SqlInClause(lhs: Exp, rhs: Sql.SelectExpression) extends Predicate
+  case class SqlInClause(lhs: Exp, rhs: Nodes.SelectExpression) extends Predicate
 
   case class TableNode(name: String, protected var alias: Option[String]=None) extends Relation with Aliasable
 
@@ -110,19 +110,19 @@ object Nodes {
 
   case class JoinedRelation(relation: Relation, join: Join) extends Relation { var alias: Option[String]=None }
 
+  /**
+    * The Basic version is not a [[Relation]] << insert reason here >>
+    * @param columns
+    * @param relation
+    * @param where
+    * @param groupBy
+    */
+  case class SelectExpression(columns: Seq[Nodes.Projection], relation: Nodes.Relation,
+                              where: Option[Predicate], groupBy: Seq[Nodes.Exp]) extends Exp
+
   object Sql {
 
     sealed trait Query
-
-    /**
-      * The Basic version is not a [[Relation]] << insert reason here >>
-      * @param columns
-      * @param relation
-      * @param where
-      * @param groupBy
-      */
-    case class SelectExpression(columns: Seq[Nodes.Projection], relation: Nodes.Relation,
-                                where: Option[Predicate], groupBy: Seq[Nodes.Exp]) extends Exp
 
     /**
       * A paranthesesed query with alias

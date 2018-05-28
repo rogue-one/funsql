@@ -29,7 +29,7 @@ object PredicateParser {
     P(Keyword.In.parser.! ~ "(" ~/ (Queries.basicSelect | Parser.expression.rep(min = 1, sep = ",")) ~ ")")
     .map({
       case (x, y: Seq[Nodes.Exp @unchecked]) => x -> y
-      case (x, y: Sql.SelectExpression) => x -> Seq(y)
+      case (x, y: Nodes.SelectExpression) => x -> Seq(y)
       case _ => ???
     })
 
@@ -40,19 +40,19 @@ object PredicateParser {
       case (e: Nodes.Exp, (headOp, headExp: Nodes.Exp) :: tail) =>
         tail.foldLeft(opToPredicate(headOp, e, headExp))({
           case (l, (op, r: Nodes.Exp)) => opToPredicate(op, l, r)
-          case (l, (ci"in", (r: Sql.SelectExpression) :: Nil)) => Nodes.SqlInClause(l, r)
+          case (l, (ci"in", (r: Nodes.SelectExpression) :: Nil)) => Nodes.SqlInClause(l, r)
           case (l, ("in", r: Seq[Nodes.Exp @unchecked])) => Nodes.InClause(l, r)
         })
-      case (e: Nodes.Exp, (ci"in", (query: Sql.SelectExpression):: Nil) :: tail) =>
+      case (e: Nodes.Exp, (ci"in", (query: Nodes.SelectExpression):: Nil) :: tail) =>
         tail.foldLeft(Nodes.SqlInClause(e, query): Predicate)({
           case (l, (op, r: Nodes.Exp)) => opToPredicate(op, l, r)
-          case (l, (ci"in", (r: Sql.SelectExpression) :: Nil)) => Nodes.SqlInClause(l, r)
+          case (l, (ci"in", (r: Nodes.SelectExpression) :: Nil)) => Nodes.SqlInClause(l, r)
           case (l, (ci"in", r: Seq[Nodes.Exp @unchecked])) => Nodes.InClause(l, r)
         })
       case (e: Nodes.Exp, (ci"in", nodes: Seq[Nodes.Exp @unchecked]) :: tail) =>
         tail.foldLeft(Nodes.InClause(e, nodes): Predicate)({
           case (l, (op, r: Nodes.Exp)) => opToPredicate(op, l, r)
-          case (l, (ci"in", (r: Sql.SelectExpression) :: Nil)) => Nodes.SqlInClause(l, r)
+          case (l, (ci"in", (r: Nodes.SelectExpression) :: Nil)) => Nodes.SqlInClause(l, r)
           case (l, (ci"in", r: Seq[Nodes.Exp @unchecked])) => Nodes.InClause(l, r)
         })
       case (x, Nil) => x

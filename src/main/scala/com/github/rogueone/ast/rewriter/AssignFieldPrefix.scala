@@ -1,12 +1,13 @@
-package com.github.rogueone.ast.semantic
+package com.github.rogueone.ast.rewriter
 
 import com.github.rogueone.ast.Nodes.{ColumnNode, Relation, Sql, UnaryOperator}
 import com.github.rogueone.ast._
+import com.github.rogueone.ast.semantic.QueryAnalyzer
 import com.github.rogueone.data.DatabaseLike
 import com.github.rogueone.utils.SemanticException
 import scala.util.Try
 
-class AssignFieldPrefix(database: DatabaseLike) {
+class AssignFieldPrefix extends QueryRewriter {
 
 
   /**
@@ -14,11 +15,13 @@ class AssignFieldPrefix(database: DatabaseLike) {
     * @param query
     * @return
     */
-  def rewrite(query: Sql.Query): Sql.Query = {
+  def rewrite(query: Sql.Query, database: DatabaseLike): Sql.Query = {
     val tables = QueryAnalyzer.getTables(query)
+    System.err.println(tables.mkString(","))
     new QueryTraverser(query, tables, database).traverse()
     query
   }
+
 
   private class QueryTraverser(query: Sql.Query, tables: List[Nodes.TableNode], database: DatabaseLike) {
 
@@ -30,7 +33,7 @@ class AssignFieldPrefix(database: DatabaseLike) {
       }
     }
 
-    private def processQueryForFields(query: Sql.SelectExpression): Unit = {
+    private def processQueryForFields(query: Nodes.SelectExpression): Unit = {
       query.columns.foreach({ case ColumnNode(x, _) => resolveExp(x) case _ => ??? })
       query.where.foreach(resolveExp)
       query.groupBy.foreach(resolveExp)
