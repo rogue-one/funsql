@@ -1,6 +1,7 @@
-package com.github.rogueone.ast.semantic
+package com.github.rogueone.ast.validator
 
 import com.github.rogueone.ast.Nodes.Sql
+
 import scala.util.Try
 
 trait SemanticAnalyzer {

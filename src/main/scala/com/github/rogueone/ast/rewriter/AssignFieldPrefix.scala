@@ -2,9 +2,10 @@ package com.github.rogueone.ast.rewriter
 
 import com.github.rogueone.ast.Nodes.{ColumnNode, Relation, Sql, UnaryOperator}
 import com.github.rogueone.ast._
-import com.github.rogueone.ast.semantic.QueryAnalyzer
+import com.github.rogueone.ast.validator.QueryAnalyzer
 import com.github.rogueone.data.DatabaseLike
 import com.github.rogueone.utils.SemanticException
+
 import scala.util.Try
 
 class AssignFieldPrefix extends QueryRewriter {

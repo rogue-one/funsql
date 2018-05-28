@@ -1,4 +1,3 @@
-package com.github.rogueone.ast.semantic
-
+package com.github.rogueone.ast.validator
 
 object QueryAnalyzer extends TableAnalyzer

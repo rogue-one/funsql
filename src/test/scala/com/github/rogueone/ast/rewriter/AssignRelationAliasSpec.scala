@@ -1,8 +1,8 @@
-package com.github.rogueone.ast
+package com.github.rogueone.ast.rewriter
 
 import com.github.rogueone.TestSpec
 import com.github.rogueone.ast.Nodes.Sql
-import com.github.rogueone.ast.rewriter.AssignRelationAlias
+import com.github.rogueone.ast.{FullJoin, InnerJoin, LeftJoin, Nodes}
 import com.github.rogueone.data.DatabaseLike
 import com.github.rogueone.parser.Queries
 
@@ -15,14 +15,12 @@ class AssignRelationAliasSpec extends TestSpec {
         |LEFT OUTER JOIN (SELECT col10 FROM table3) t10 ON col3 = col4
         |FULL OUTER JOIN table4 ON col5 = col6
         |WHERE col3 = DATE '2017-08-01'""".stripMargin
-    val queryWriter = new AssignRelationAlias() {
-      override protected def getAliasName: String = "test"
-    }
+    val queryWriter = new AssignRelationAlias()
     val ast = Queries.select.parse(sql).get.value
     queryWriter.rewrite(ast, new DatabaseLike {})
-    ast.select.relation.asInstanceOf[Nodes.JoinedRelation].alias must be (Some("test"))
+    ast.select.relation.asInstanceOf[Nodes.JoinedRelation].alias must be (Some("t0"))
     ast.select.relation.asInstanceOf[Nodes.JoinedRelation]
-      .relation.asInstanceOf[Nodes.JoinedRelation].alias must be (Some("test"))
+      .relation.asInstanceOf[Nodes.JoinedRelation].alias must be (Some("t1"))
     ast must be (
       Sql.Select(
         Nodes.SelectExpression(
@@ -34,9 +32,9 @@ class AssignRelationAliasSpec extends TestSpec {
           Nodes.JoinedRelation(
             Nodes.JoinedRelation(
               Nodes.JoinedRelation(
-                Nodes.TableNode("table1",Some("test")),
+                Nodes.TableNode("table1",Some("t3")),
                 InnerJoin(
-                  Nodes.TableNode("table2", Some("test")),
+                  Nodes.TableNode("table2", Some("t4")),
                   Some(Nodes.Eq(Nodes.Identifier("col1",None), Nodes.Identifier("col2",None)))
                 )
               ),
@@ -44,7 +42,7 @@ class AssignRelationAliasSpec extends TestSpec {
                 Sql.SubQuery(
                   Nodes.SelectExpression(
                     Seq(Nodes.ColumnNode(Nodes.Identifier("col10",None),None)),
-                    Nodes.TableNode("table3",Some("test")),
+                    Nodes.TableNode("table3",Some("t8")),
                     None,List()
                   ),
                   Some("t10")
@@ -53,13 +51,12 @@ class AssignRelationAliasSpec extends TestSpec {
               )
             ),
             FullJoin(
-              Nodes.TableNode("table4",Some("test")),
+              Nodes.TableNode("table4",Some("t9")),
               Nodes.Eq(Nodes.Identifier("col5",None), Nodes.Identifier("col6",None))
             )
           ),Some(Nodes.Eq(Nodes.Identifier("col3",None), Nodes.DateLiteral("2017-08-01"))),
           List()),None
         )
-
     )
   }
 }

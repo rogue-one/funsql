@@ -122,7 +122,7 @@ object Nodes {
 
   object Sql {
 
-    sealed trait Query
+    sealed trait Query { val select : SelectExpression }
 
     /**
       * A paranthesesed query with alias

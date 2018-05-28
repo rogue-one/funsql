@@ -1,9 +1,8 @@
-package com.github.rogueone.ast.semantic
+package com.github.rogueone.ast.rewriter
 
 import com.github.rogueone.TestSpec
 import com.github.rogueone.ast.Nodes.Sql
 import com.github.rogueone.ast.Nodes.Sql.SubQuery
-import com.github.rogueone.ast.rewriter.AssignFieldPrefix
 import com.github.rogueone.ast.{InnerJoin, Nodes}
 import com.github.rogueone.data.DataType.StringType
 import com.github.rogueone.data.{Column, DatabaseLike, Table}

@@ -1,8 +1,8 @@
-package com.github.rogueone.ast
+package com.github.rogueone.ast.validator
 
 import com.github.rogueone.TestSpec
+import com.github.rogueone.ast.Nodes
 import com.github.rogueone.ast.Nodes.Sql
-import com.github.rogueone.ast.semantic.QueryAnalyzer
 import com.github.rogueone.parser.Queries
 
 class QueryAnalyzerSpec extends TestSpec {
