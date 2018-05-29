@@ -28,7 +28,8 @@ class FieldAnalyzerSpec extends TestSpec {
          |WHERE col6 = 20 AND col5 IN (10, 20, 30)
          |GROUP BY col1, col4
          |""".stripMargin)
-    new AssignFieldPrefix().rewrite(select.get.value, database) must be (
+    val rewriter = new QueryRewriter() with AssignFieldPrefix
+    rewriter.rewrite(select.get.value, database) must be (
       Nodes.Sql.Select(
         Nodes.SelectExpression(
           ArrayBuffer(

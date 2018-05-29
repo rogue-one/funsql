@@ -104,11 +104,11 @@ object Nodes {
 
   case class TableNode(name: String, protected var alias: Option[String]=None) extends Relation with Aliasable
 
-  case class ColumnNode(exp: Exp, var alias: Option[String]=None) extends Projection
+  case class ColumnNode(exp: Exp, protected var alias: Option[String]=None) extends Projection
 
   case object Star extends Projection { var alias: Option[String] = None }
 
-  case class JoinedRelation(relation: Relation, join: Join) extends Relation { var alias: Option[String]=None }
+  case class JoinedRelation(relation: Relation, join: Join, protected var alias: Option[String]=None) extends Relation
 
   /**
     * The Basic version is not a [[Relation]] << insert reason here >>

@@ -5,11 +5,13 @@ import com.github.rogueone.ast.Nodes.Sql
 import com.github.rogueone.data.DatabaseLike
 import com.github.rogueone.ast.util.ASTUtil.QueryUtil
 
-class AssignRelationAlias extends QueryRewriter {
+trait AssignRelationAlias extends QueryRewriteStrategy {
 
   private var numberStream: Stream[Int] = (0 until Int.MaxValue).toStream
 
-  override def rewrite(query: Sql.Query, database: DatabaseLike): Sql.Query = { setAlias(query); query }
+  abstract override def rewrite(query: Sql.Query, database: DatabaseLike): Sql.Query = {
+    super.rewrite(setAlias(query), database)
+  }
 
   def getAlias: String = {
     val head #:: tail = numberStream
@@ -27,7 +29,7 @@ class AssignRelationAlias extends QueryRewriter {
     * parse query to list all tables in a query
     * @return
     */
-  protected def setAlias(query: Sql.Query): Unit = {
+  protected def setAlias(query: Sql.Query): Sql.Query = {
     def parseQuery(relation: Nodes.Relation): Unit = {
       relation match {
         case x: Sql.SubQuery => x.setAliasName(getAliasName(query)); parseQuery(x.select.relation)
@@ -38,8 +40,7 @@ class AssignRelationAlias extends QueryRewriter {
       }
     }
     parseQuery(query.select.relation)
+    query
   }
 
 }
-
-object AssignRelationAlias extends AssignRelationAlias

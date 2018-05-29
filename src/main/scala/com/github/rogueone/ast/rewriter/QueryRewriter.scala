@@ -1,20 +1,21 @@
 package com.github.rogueone.ast.rewriter
 
 import com.github.rogueone.ast.Nodes.Sql
+import com.github.rogueone.ast.rewriter.QueryRewriter.IdentityStrategy
 import com.github.rogueone.data.DatabaseLike
 
-protected[rewriter] trait QueryRewriter {
+class QueryRewriter extends IdentityStrategy {
 
-  def rewrite(query: Sql.Query, database: DatabaseLike): Sql.Query
+  self: QueryRewriteStrategy =>
 
-  def andThen(that: QueryRewriter): QueryRewriter = {
-    (query: Sql.Query, database: DatabaseLike) => that.rewrite(this.rewrite(query, database), database)
-  }
+  def rewrite(sql: Sql.Query): Sql.Query = self.rewrite(sql)
 
 }
 
 object QueryRewriter {
 
-  val queryReWriters: QueryRewriter = AssignRelationAlias
+  trait IdentityStrategy extends QueryRewriteStrategy {
+    override def rewrite(query: Sql.Query, database: DatabaseLike): Sql.Query = query
+  }
 
 }

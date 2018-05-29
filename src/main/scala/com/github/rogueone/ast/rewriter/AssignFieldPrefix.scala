@@ -8,19 +8,17 @@ import com.github.rogueone.utils.SemanticException
 
 import scala.util.Try
 
-class AssignFieldPrefix extends QueryRewriter {
+trait AssignFieldPrefix extends QueryRewriteStrategy {
 
 
   /**
     * get all fields/columns used
-    * @param query
     * @return
     */
-  def rewrite(query: Sql.Query, database: DatabaseLike): Sql.Query = {
+  abstract override def rewrite(query: Sql.Query, database: DatabaseLike): Sql.Query = {
     val tables = QueryAnalyzer.getTables(query)
-    System.err.println(tables.mkString(","))
     new QueryTraverser(query, tables, database).traverse()
-    query
+    super.rewrite(query, database)
   }
 
 
