@@ -2,9 +2,11 @@ package com.github.rogueone.ast.rewriter
 
 import com.github.rogueone.TestSpec
 import com.github.rogueone.ast.Nodes.Sql
+import com.github.rogueone.ast.util.NodeToString
 import com.github.rogueone.ast.{FullJoin, InnerJoin, LeftJoin, Nodes}
 import com.github.rogueone.data.DatabaseLike
 import com.github.rogueone.parser.Queries
+import NodeToString._
 
 class AssignRelationAliasSpec extends TestSpec {
 
@@ -21,7 +23,7 @@ class AssignRelationAliasSpec extends TestSpec {
     ast.select.relation.asInstanceOf[Nodes.JoinedRelation].getAliasName must be (Some("t0"))
     ast.select.relation.asInstanceOf[Nodes.JoinedRelation]
       .relation.asInstanceOf[Nodes.JoinedRelation].getAliasName must be (Some("t1"))
-    ast must be(
+    ast must be (
       Sql.Select(
         Nodes.SelectExpression(
           Seq(
@@ -60,42 +62,5 @@ class AssignRelationAliasSpec extends TestSpec {
         ), None
       )
     )
-//    ast must be (
-//      Sql.Select(
-//        Nodes.SelectExpression(
-//          Seq(
-//            Nodes.ColumnNode(Nodes.Identifier("col1",None),None),
-//            Nodes.ColumnNode(Nodes.Identifier("col2",None),Some("x1")),
-//            Nodes.ColumnNode(Nodes.Identifier("col3",None),None)
-//          ),
-//          Nodes.JoinedRelation(
-//            Nodes.JoinedRelation(
-//              Nodes.JoinedRelation(
-//                Nodes.TableNode("table1",Some("t3")),
-//                InnerJoin(
-//                  Nodes.TableNode("table2", Some("t4")),
-//                  Some(Nodes.Eq(Nodes.Identifier("col1",None), Nodes.Identifier("col2",None)))
-//                )
-//              ),
-//              LeftJoin(
-//                Sql.SubQuery(
-//                  Nodes.SelectExpression(
-//                    Seq(Nodes.ColumnNode(Nodes.Identifier("col10",None),None)),
-//                    Nodes.TableNode("table3",Some("t8")),
-//                    None,List()
-//                  ),
-//                  Some("t10")
-//                ),
-//                Nodes.Eq(Nodes.Identifier("col3",None), Nodes.Identifier("col4",None))
-//              )
-//            ),
-//            FullJoin(
-//              Nodes.TableNode("table4",Some("t9")),
-//              Nodes.Eq(Nodes.Identifier("col5",None), Nodes.Identifier("col6",None))
-//            )
-//          ),Some(Nodes.Eq(Nodes.Identifier("col3",None), Nodes.DateLiteral("2017-08-01"))),
-//          List()),None
-//        )
-//    )
   }
 }

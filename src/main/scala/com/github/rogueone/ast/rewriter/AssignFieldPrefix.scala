@@ -64,10 +64,10 @@ trait AssignFieldPrefix extends QueryRewriteStrategy {
       exp match {
         case x: Nodes.Identifier => setFieldPrefix(x)
         case Nodes.Function(_, args) => args.foreach({case x: Nodes.Identifier => setFieldPrefix(x) case _ => ()})
+        case Nodes.SqlInClause(lhs, rhs) => resolveExp(lhs); processQueryForFields(rhs)
         case x: Nodes.BinaryOperator => resolveExp(x.lhs); resolveExp(x.rhs)
         case x: UnaryOperator => resolveExp(x.arg)
         case Nodes.InClause(lhs, _) => resolveExp(lhs)
-        case Nodes.SqlInClause(lhs, rhs) => resolveExp(lhs); processQueryForFields(rhs)
         case _ => ()
       }
     }

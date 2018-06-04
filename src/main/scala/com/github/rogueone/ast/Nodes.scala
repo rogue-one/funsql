@@ -33,30 +33,36 @@ object Nodes {
 
   sealed trait Literal extends Exp
 
-  sealed abstract class BaseLiteral[T](value: String) extends Literal {
+  sealed abstract class BaseLiteral(val value: String) extends Literal {
+    type T
     val data: Try[T]
     def parsed: Boolean = data.isSuccess
   }
 
-  case class IntegerLiteral(value: String) extends BaseLiteral[Long](value) {
+  case class IntegerLiteral(override val value: String) extends BaseLiteral(value) {
+    type T = Long
     val data: Try[Long] = Try(value.toLong)
   }
 
-  case class DecimalLiteral(value: String) extends BaseLiteral[Double](value) {
+  case class DecimalLiteral(override val value: String) extends BaseLiteral(value) {
+    type T = Double
     val data: Try[Double] = Try(value.toDouble)
   }
 
-  case class StringLiteral(value: String) extends BaseLiteral[String](value) {
+  case class StringLiteral(override val value: String) extends BaseLiteral(value) {
+    type T =  String
     val data: Try[String] = Success(value)
   }
 
-  case class DateLiteral(value: String) extends BaseLiteral[Date](value) {
+  case class DateLiteral(override val value: String) extends BaseLiteral(value) {
+    type T = Date
     val sdf = new SimpleDateFormat("yyyy-MM-dd")
     sdf.setLenient(false)
     val data: Try[Date] = Try(sdf.parse(value))
   }
 
-  case class TimestampLiteral(value: String) extends BaseLiteral[Date](value) {
+  case class TimestampLiteral(override val value: String) extends BaseLiteral(value) {
+    type T = Date
     val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
     sdf.setLenient(false)
     val data: Try[Date] = Try(sdf.parse(value))
@@ -66,9 +72,11 @@ object Nodes {
 
   case class Function(name: Identifier, exp: Seq[Exp]) extends Exp
 
-  sealed trait BinaryOperator extends Exp { val lhs: Exp; val rhs: Exp }
+  sealed trait Operator
 
-  sealed trait UnaryOperator extends Exp { val arg: Exp }
+  sealed trait BinaryOperator extends Operator with Exp { val lhs: Exp; val rhs: Exp }
+
+  sealed trait UnaryOperator extends Operator with Exp { val arg: Exp }
 
   case class Add(lhs: Exp, rhs: Exp) extends BinaryOperator
 
@@ -100,7 +108,7 @@ object Nodes {
 
   case class InClause(lhs: Exp, rhs: Seq[Exp]) extends Predicate
 
-  case class SqlInClause(lhs: Exp, rhs: Nodes.SelectExpression) extends Predicate
+  case class SqlInClause(lhs: Exp, rhs: Nodes.SelectExpression) extends Predicate with BinaryOperator
 
   case class TableNode(name: String, protected var alias: Option[String]=None) extends Relation with Aliasable
 
@@ -122,7 +130,7 @@ object Nodes {
 
   object Sql {
 
-    sealed trait Query { val select : SelectExpression }
+    sealed trait Query extends Node { val select : SelectExpression }
 
     /**
       * A paranthesesed query with alias

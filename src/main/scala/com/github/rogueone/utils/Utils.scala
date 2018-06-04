@@ -10,4 +10,9 @@ object Utils {
 
   def uuid: String = UUID.randomUUID.toString
 
+  implicit class StringUtil(str: String) {
+    def oneLiner: String = str.split(System.lineSeparator).mkString(" ")
+  }
+
+
 }
