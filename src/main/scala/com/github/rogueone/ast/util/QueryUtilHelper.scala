@@ -13,7 +13,7 @@ trait QueryUtilHelper {
     * and the inner relations that make up the sub-query is not returned.
     * @return
     */
-  def relations: List[Relation] = {
+  def outerRelations: List[Relation] = {
     def get(relation: Relation): List[Relation] = {
       relation match {
         case x: Nodes.TableNode => x :: Nil

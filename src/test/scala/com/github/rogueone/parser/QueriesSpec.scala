@@ -79,7 +79,7 @@ class QueriesSpec extends TestSpec {
         Nodes.SelectExpression(
           Seq(Nodes.ColumnNode(Nodes.Identifier("col1")), Nodes.ColumnNode(Nodes.Identifier("col2"))),
           Sql.SubQuery(
-            Nodes.SelectExpression(Seq(Nodes.Star), Nodes.TableNode("table1"), None, Nil),
+            Nodes.SelectExpression(Seq(Nodes.Star()), Nodes.TableNode("table1"), None, Nil),
             Some("t0")
           ),
           Some(Nodes.Eq(Nodes.Identifier("col4"), Nodes.Identifier("col5"))), Nil
@@ -93,13 +93,13 @@ class QueriesSpec extends TestSpec {
       Nodes.SelectExpression(
         Seq(
           Nodes.ColumnNode(Nodes.Identifier("col1"), Some("x1")),
-          Nodes.Star
+          Nodes.Star()
         ),
         Nodes.TableNode("table_name", None), None, Nil)
     )
     Queries.basicSelect.parse("SELECT col1,* FROM table_name").get.value must be (
       Nodes.SelectExpression(
-        Seq(Nodes.ColumnNode(Nodes.Identifier("col1")), Nodes.Star),
+        Seq(Nodes.ColumnNode(Nodes.Identifier("col1")), Nodes.Star()),
         Nodes.TableNode("table_name", None),
         None, Nil)
     )

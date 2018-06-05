@@ -47,7 +47,7 @@ object NodeToString {
       t match {
         case x: IntegerLiteral => x.value
         case x: DecimalLiteral => x.value
-        case x: StringLiteral => x.value
+        case x: StringLiteral => s"'${x.value}'"
         case x: DateLiteral => s"DATE '${x.value}'"
         case x: TimestampLiteral => s"TIMESTAMP '${x.value}'"
       }
@@ -111,7 +111,8 @@ object NodeToString {
   implicit lazy val projections: NodePrinter[Projection] = new NodePrinter[Projection] {
     override def string(t: Projection): String = {
       t match {
-        case Star => "*"
+        case Star(Some(prefix)) => s"$prefix.*"
+        case Star(None) => "*"
         case ColumnNode(exp, Some(x)) => s"${stringify(exp)} AS $x"
         case ColumnNode(exp, None) => s"${stringify(exp)}"
       }

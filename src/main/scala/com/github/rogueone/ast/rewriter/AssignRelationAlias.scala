@@ -20,7 +20,7 @@ trait AssignRelationAlias extends QueryRewriteStrategy {
   }
 
   protected def getAliasName(query: Sql.Query): String = {
-    val queryAlias = query.relations.map(_.getAliasName).collect({case Some(x) => x}).toSet
+    val queryAlias = query.outerRelations.map(_.getAliasName).collect({case Some(x) => x}).toSet
     val alias = getAlias
     if(queryAlias(alias)) getAliasName(query) else alias
   }

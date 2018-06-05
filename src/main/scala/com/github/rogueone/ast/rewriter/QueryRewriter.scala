@@ -18,4 +18,6 @@ object QueryRewriter {
     override def rewrite(query: Sql.Query, database: DatabaseLike): Sql.Query = query
   }
 
+  new QueryRewriter with AssignFieldPrefix with AssignRelationAlias with ExpandStar
+
 }

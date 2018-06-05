@@ -5,6 +5,7 @@ import com.github.rogueone.ast.Nodes
 import com.github.rogueone.ast.Nodes.{Exp, Identifier, Relation, Sql}
 import com.github.rogueone.parser.Parser.expression
 import fastparse.all._
+import fastparse.core
 
 object Primitives {
 
@@ -17,7 +18,7 @@ object Primitives {
   val divide: P[Unit] = P { "/" }
   val decimal: P[Unit] = P { "." }
   val whitespace: P[Unit] = P { CharIn(" \n\t") }
-  val star: P[Nodes.Star.type] = P { "*" }.map(_ => Nodes.Star)
+  val star: P[Unit] = P { "*" }
 
   def protoIdentifier: P[String] = {
     P(((Primitives.alphabet | Primitives.underscore) ~ (alphabet | Primitives.number |
@@ -38,10 +39,12 @@ object Primitives {
 
   def alias: P[Option[String]] = (Keyword.As.parser.? ~ whitespace.rep ~ identifier.!).?
 
-  def column: P[Nodes.Aliasable] = P((Parser.expression ~ whitespace.rep ~ alias) | star)
+  def prefixedStar: P[Nodes.Star] = P((protoIdentifier ~ ".").? ~ star).map(x => Nodes.Star(x))
+
+  def column: P[Nodes.Aliasable] = P((Parser.expression ~ whitespace.rep ~ alias) | prefixedStar)
     .map({
       case (exp: Exp, alias: Option[String] @unchecked) => Nodes.ColumnNode(exp, alias)
-      case Nodes.Star => Nodes.Star
+      case x: Nodes.Star => x
     })
 
   def relation: P[Nodes.Relation] = {

@@ -2,6 +2,7 @@ package com.github.rogueone.ast
 
 import java.text.SimpleDateFormat
 import java.util.Date
+import com.github.rogueone.ast.util.AliasActions.{EditAlias, ReadAlias}
 import scala.util.{Success, Try}
 
 /**
@@ -11,27 +12,19 @@ object Nodes {
 
   sealed trait Node
 
-  sealed trait Aliasable extends Node {
+  sealed trait Aliasable extends Node with ReadAlias { protected var alias: Option[String] }
 
-    protected var alias: Option[String]
+  sealed trait AliasEditable extends Aliasable with EditAlias with ReadAlias
 
-    /**
-      * set alias if not already sey
-      * @param name
-      */
-    def setAliasName(name: String): Unit = alias match { case Some(_) => () case None => alias = Some(name) }
+  sealed trait Relation extends AliasEditable
 
-    def getAliasName: Option[String] = alias
-
-  }
-
-  sealed trait Relation extends Aliasable
-
-  sealed trait Projection extends Aliasable
+  sealed trait Projection extends Node
 
   sealed trait  Exp extends Node
 
   sealed trait Literal extends Exp
+
+  sealed trait Prefixable { protected var prefix: Option[String] }
 
   sealed abstract class BaseLiteral(val value: String) extends Literal {
     type T
@@ -68,7 +61,7 @@ object Nodes {
     val data: Try[Date] = Try(sdf.parse(value))
   }
 
-  case class Identifier(value: String, var prefix: Option[String]=None) extends Exp
+  case class Identifier(value: String, var prefix: Option[String]=None) extends Exp with Prefixable
 
   case class Function(name: Identifier, exp: Seq[Exp]) extends Exp
 
@@ -112,9 +105,9 @@ object Nodes {
 
   case class TableNode(name: String, protected var alias: Option[String]=None) extends Relation with Aliasable
 
-  case class ColumnNode(exp: Exp, protected var alias: Option[String]=None) extends Projection
+  case class ColumnNode(exp: Exp, protected var alias: Option[String]=None) extends Projection with AliasEditable
 
-  case object Star extends Projection { var alias: Option[String] = None }
+  case class Star(prefix: Option[String]=None) extends Projection with Aliasable { protected var alias: Option[String] = None }
 
   case class JoinedRelation(relation: Relation, join: Join, protected var alias: Option[String]=None) extends Relation
 
